@@ -259,7 +259,8 @@ class ResourceManager:
         if size is not None:
             # PIL uses (width, height)
             image = image.resize((size[1], size[0]), resample=Image.Resampling.NEAREST)
-        image = np.array(image)
+        image = image.quantize(colors=2, dither=0)
+        image = 1 - np.array(image)
         return image
 
     def import_layer(self, file_name: str, size: Tuple[int, int]):
