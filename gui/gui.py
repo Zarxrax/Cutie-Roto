@@ -76,7 +76,7 @@ class GUI(QWidget):
         self.object_dial.setMinimumSize(50, 30)
         self.object_dial.setMinimum(1)
         self.object_dial.setMaximum(controller.num_objects)
-        self.object_dial.editingFinished.connect(controller.on_object_dial_change)
+        self.object_dial.valueChanged.connect(controller.on_object_dial_change)
 
         self.object_color = QLabel()
         self.object_color.setMinimumSize(100, 30)
