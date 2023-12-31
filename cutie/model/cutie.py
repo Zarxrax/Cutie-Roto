@@ -27,7 +27,7 @@ class CUTIE(nn.Module):
         self.embed_dim = model_cfg.embed_dim
         self.single_object = single_object
 
-        log.info(f'Single object: {self.single_object}')
+        #log.info(f'Single object: {self.single_object}')
 
         self.pixel_encoder = PixelEncoder(model_cfg)
         self.pix_feat_proj = nn.Conv2d(self.ms_dims[0], self.pixel_dim, kernel_size=1)

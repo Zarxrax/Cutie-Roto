@@ -10,7 +10,11 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 from argparse import ArgumentParser
 
-import torch
+try:
+    import torch
+except ModuleNotFoundError:
+    sys.exit("Please execute \"install_pytorch.bat\" to install Pytorch, then try again.")
+    
 from omegaconf import open_dict
 from hydra import compose, initialize
 import logging

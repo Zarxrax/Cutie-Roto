@@ -16,6 +16,7 @@ from torch import autocast
 from torchvision.transforms.functional import to_tensor
 import numpy as np
 from omegaconf import DictConfig, open_dict
+from showinfm import show_in_file_manager
 
 from cutie.model.cutie import CUTIE
 from cutie.inference.inference_core import InferenceCore
@@ -30,7 +31,6 @@ from gui.exporter import convert_frames_to_video, convert_mask_to_binary
 from scripts.download_models import download_models_if_needed
 
 log = logging.getLogger()
-
 
 class MainController():
     def __init__(self, cfg: DictConfig) -> None:
@@ -119,9 +119,9 @@ class MainController():
         self.initialized = True
 
         # try to load the default overlay
-        self._try_load_layer('./docs/uiuc.png')
-        self.gui.set_object_color(self.curr_object)
-        self.update_config()
+        #self._try_load_layer('./docs/uiuc.png')
+        #self.gui.set_object_color(self.curr_object)
+        #self.update_config()
 
     def initialize_networks(self) -> None:
         download_models_if_needed()
@@ -573,6 +573,9 @@ class MainController():
             self.curr_mask = mask
             self.show_current_frame()
             self.save_current_mask()
+
+    def on_open_workspace(self):
+        show_in_file_manager(self.res_man.workspace)
 
     def on_import_layer(self):
         file_name = self.gui.open_file('Layer')

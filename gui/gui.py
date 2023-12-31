@@ -3,7 +3,7 @@ import functools
 import numpy as np
 from omegaconf import DictConfig
 
-from PySide6.QtWidgets import (QWidget, QComboBox, QCheckBox, QHBoxLayout, QLabel, QPushButton,
+from PySide6.QtWidgets import (QWidget, QComboBox, QCheckBox, QFrame, QHBoxLayout, QLabel, QPushButton,
                                QTextEdit, QSpinBox, QPlainTextEdit, QVBoxLayout, QSizePolicy,
                                QButtonGroup, QSlider, QRadioButton, QApplication, QFileDialog)
 
@@ -60,8 +60,8 @@ class GUI(QWidget):
 
         self.reset_frame_button = QPushButton('Reset frame')
         self.reset_frame_button.clicked.connect(controller.on_reset_mask)
-        self.reset_object_button = QPushButton('Reset object')
-        self.reset_object_button.clicked.connect(controller.on_reset_object)
+        #self.reset_object_button = QPushButton('Reset object')
+        #self.reset_object_button.clicked.connect(controller.on_reset_object)
 
         # set up the LCD
         self.lcd = QTextEdit()
@@ -102,13 +102,13 @@ class GUI(QWidget):
         self.combo.addItem("fade")
         self.combo.addItem("light")
         self.combo.addItem("popup")
-        self.combo.addItem("layer")
+        #self.combo.addItem("layer")
         self.combo.setCurrentText('davis')
         self.combo.currentTextChanged.connect(controller.set_vis_mode)
 
-        self.save_visualization_checkbox = QCheckBox(self)
-        self.save_visualization_checkbox.toggled.connect(controller.on_save_visualization_toggle)
-        self.save_visualization_checkbox.setChecked(False)
+        #self.save_visualization_checkbox = QCheckBox(self)
+        #self.save_visualization_checkbox.toggled.connect(controller.on_save_visualization_toggle)
+        #self.save_visualization_checkbox.setChecked(False)
 
         self.save_soft_mask_checkbox = QCheckBox(self)
         self.save_soft_mask_checkbox.toggled.connect(controller.on_save_soft_mask_toggle)
@@ -174,8 +174,12 @@ class GUI(QWidget):
         # import mask/layer
         self.import_mask_button = QPushButton('Import mask')
         self.import_mask_button.clicked.connect(controller.on_import_mask)
-        self.import_layer_button = QPushButton('Import layer')
-        self.import_layer_button.clicked.connect(controller.on_import_layer)
+        #self.import_layer_button = QPushButton('Import layer')
+        #self.import_layer_button.clicked.connect(controller.on_import_layer)
+        
+        #open workspace
+        self.open_workspace_button = QPushButton('Open Workspace')
+        self.open_workspace_button.clicked.connect(controller.on_open_workspace)
 
         # Console on the GUI
         self.console = QPlainTextEdit()
@@ -201,11 +205,11 @@ class GUI(QWidget):
         interact_topbox.addWidget(self.lcd)
         interact_topbox.addWidget(self.play_button)
         interact_topbox.addWidget(self.reset_frame_button)
-        interact_topbox.addWidget(self.reset_object_button)
-        interact_botbox.addWidget(QLabel('Current object ID:'))
-        interact_botbox.addWidget(self.object_dial)
-        interact_botbox.addWidget(self.object_color)
-        interact_botbox.addWidget(self.frame_name)
+        #interact_topbox.addWidget(self.reset_object_button)
+        #interact_botbox.addWidget(QLabel('Current object ID:'))
+        #interact_botbox.addWidget(self.object_dial)
+        #interact_botbox.addWidget(self.object_color)
+        #interact_botbox.addWidget(self.frame_name)
         interact_subbox.addLayout(interact_topbox)
         interact_subbox.addLayout(interact_botbox)
         interact_botbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -228,13 +232,13 @@ class GUI(QWidget):
         overlay_topbox.addWidget(QLabel('Save soft mask during propagation'))
         overlay_topbox.addWidget(self.save_soft_mask_checkbox)
         overlay_topbox.addWidget(self.export_binary_button)
-        overlay_botbox.addWidget(QLabel('Save overlay'))
-        overlay_botbox.addWidget(self.save_visualization_checkbox)
-        overlay_botbox.addWidget(self.export_video_button)
-        overlay_botbox.addWidget(QLabel('Output FPS: '))
-        overlay_botbox.addWidget(self.fps_dial)
-        overlay_botbox.addWidget(QLabel('Output bitrate (Mbps): '))
-        overlay_botbox.addWidget(self.bitrate_dial)
+        #overlay_botbox.addWidget(QLabel('Save overlay'))
+        #overlay_botbox.addWidget(self.save_visualization_checkbox)
+        #overlay_botbox.addWidget(self.export_video_button)
+        #overlay_botbox.addWidget(QLabel('Output FPS: '))
+        #overlay_botbox.addWidget(self.fps_dial)
+        #overlay_botbox.addWidget(QLabel('Output bitrate (Mbps): '))
+        #overlay_botbox.addWidget(self.bitrate_dial)
         overlay_subbox.addLayout(overlay_topbox)
         overlay_subbox.addLayout(overlay_botbox)
         navi.addLayout(overlay_subbox)
@@ -248,7 +252,7 @@ class GUI(QWidget):
         control_topbox.addWidget(self.commit_button)
         control_topbox.addWidget(self.forward_run_button)
         control_topbox.addWidget(self.backward_run_button)
-        control_botbox.addWidget(self.progressbar)
+        #control_botbox.addWidget(self.progressbar)
         control_subbox.addLayout(control_topbox)
         control_subbox.addLayout(control_botbox)
         navi.addLayout(control_subbox)
@@ -276,11 +280,12 @@ class GUI(QWidget):
         right_area.addLayout(self.long_mem_max_layout)
         right_area.addLayout(self.mem_every_box_layout)
 
-        # import mask/layer
+        # import mask/layer/workspace
         import_area = QHBoxLayout()
         import_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         import_area.addWidget(self.import_mask_button)
-        import_area.addWidget(self.import_layer_button)
+        #import_area.addWidget(self.import_layer_button)
+        import_area.addWidget(self.open_workspace_button)
         right_area.addLayout(import_area)
 
         # console
