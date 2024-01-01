@@ -49,7 +49,7 @@ grayscale_weights = np.array([[0.3, 0.59, 0.11]]).astype(np.float32)
 grayscale_weights_torch = torch.from_numpy(grayscale_weights).to(device).unsqueeze(0)
 
 
-def get_visualization(mode: Literal['image', 'mask', 'fade', 'davis', 'light', 'popup',
+def get_visualization(mode: Literal['image', 'mask', 'fade', 'overlay', 'light', 'popup',
                                     'layer'], image: np.ndarray, mask: np.ndarray,
                       layer: np.ndarray, target_objects: List[int]) -> np.ndarray:
     if mode == 'image':
@@ -58,7 +58,7 @@ def get_visualization(mode: Literal['image', 'mask', 'fade', 'davis', 'light', '
         return color_map_np[mask]
     elif mode == 'fade':
         return overlay_davis(image, mask, fade=True)
-    elif mode == 'davis':
+    elif mode == 'overlay':
         return overlay_davis(image, mask)
     elif mode == 'light':
         return overlay_davis(image, mask, 0.9)
@@ -74,7 +74,7 @@ def get_visualization(mode: Literal['image', 'mask', 'fade', 'davis', 'light', '
         raise NotImplementedError
 
 
-def get_visualization_torch(mode: Literal['image', 'mask', 'fade', 'davis', 'light', 'popup',
+def get_visualization_torch(mode: Literal['image', 'mask', 'fade', 'overlay', 'light', 'popup',
                                           'layer'], image: torch.Tensor, prob: torch.Tensor,
                             layer: torch.Tensor, target_objects: List[int]) -> np.ndarray:
     if mode == 'image':
@@ -84,7 +84,7 @@ def get_visualization_torch(mode: Literal['image', 'mask', 'fade', 'davis', 'lig
         return (color_map_torch[mask] * 255).byte().cpu().numpy()
     elif mode == 'fade':
         return overlay_davis_torch(image, prob, fade=True)
-    elif mode == 'davis':
+    elif mode == 'overlay':
         return overlay_davis_torch(image, prob)
     elif mode == 'light':
         return overlay_davis_torch(image, prob, 0.9)

@@ -83,7 +83,7 @@ class MainController():
         self.curr_prob[0] = 1
 
         # visualization info
-        self.vis_mode: str = 'davis'
+        self.vis_mode: str = 'overlay'
         self.vis_image: np.ndarray = None
         self.save_visualization: bool = False
         self.save_soft_mask: bool = False
@@ -169,16 +169,16 @@ class MainController():
                 self.update_interacted_mask()
                 self.update_gpu_gauges()
 
-            elif action == 'middle':
+            #elif action == 'middle':
                 # middle: select a new visualization object
-                target_object = self.curr_mask[int(y), int(x)]
-                if target_object in self.vis_target_objects:
-                    self.vis_target_objects.remove(target_object)
-                else:
-                    self.vis_target_objects.append(target_object)
-                self.gui.text(f'Overlay target(s) changed to {self.vis_target_objects}')
-                self.show_current_frame()
-                return
+            #    target_object = self.curr_mask[int(y), int(x)]
+            #    if target_object in self.vis_target_objects:
+            #        self.vis_target_objects.remove(target_object)
+            #    else:
+            #        self.vis_target_objects.append(target_object)
+            #    self.gui.text(f'Overlay target(s) changed to {self.vis_target_objects}')
+            #    self.show_current_frame()
+            #    return
             else:
                 raise NotImplementedError
 

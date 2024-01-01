@@ -98,12 +98,12 @@ class GUI(QWidget):
         # combobox
         self.combo = QComboBox(self)
         self.combo.addItem("mask")
-        self.combo.addItem("davis")
+        self.combo.addItem("overlay")
         self.combo.addItem("fade")
-        self.combo.addItem("light")
-        self.combo.addItem("popup")
+        #self.combo.addItem("light")
+        #self.combo.addItem("popup")
         #self.combo.addItem("layer")
-        self.combo.setCurrentText('davis')
+        self.combo.setCurrentText('overlay')
         self.combo.currentTextChanged.connect(controller.set_vis_mode)
 
         #self.save_visualization_checkbox = QCheckBox(self)
@@ -337,7 +337,7 @@ class GUI(QWidget):
         self.main_canvas.setPixmap(
             QPixmap(
                 qImg.scaled(self.main_canvas.size(), Qt.AspectRatioMode.KeepAspectRatio,
-                            Qt.TransformationMode.FastTransformation)))
+                            Qt.TransformationMode.SmoothTransformation)))
 
         self.main_canvas_size = self.main_canvas.size()
         self.image_size = qImg.size()
@@ -408,12 +408,13 @@ class GUI(QWidget):
         ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
         if event.button() == Qt.MouseButton.LeftButton:
             action = 'left'
+            self.click_fn(action, ex, ey)
         elif event.button() == Qt.MouseButton.RightButton:
             action = 'right'
-        elif event.button() == Qt.MouseButton.MiddleButton:
-            action = 'middle'
-
-        self.click_fn(action, ex, ey)
+            self.click_fn(action, ex, ey)
+        #elif event.button() == Qt.MouseButton.MiddleButton:
+        #    action = 'middle'
+        
 
     def on_mouse_motion(self, event):
         ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
