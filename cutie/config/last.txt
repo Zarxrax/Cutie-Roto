@@ -1,1 +1,1 @@
-F:\Cutie\examples\example.mp4
+./examples/example.mp4
