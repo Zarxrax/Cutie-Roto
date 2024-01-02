@@ -18,11 +18,16 @@ except ModuleNotFoundError:
 from omegaconf import open_dict
 from hydra import compose, initialize
 import logging
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QDialog
 import qdarktheme
 
 from gui.main_controller import MainController
+from gui.launcher_gui import Launcher_Dialog
 
+class Dialog(QDialog, Launcher_Dialog):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
 
 def get_arguments():
     parser = ArgumentParser()
@@ -73,8 +78,21 @@ if __name__ in "__main__":
             assert k not in cfg, f'Argument {k} already exists in config'
             cfg[k] = v
 
-    # start everything
+    # prepare to start the gui
     app = QApplication(sys.argv)
-    qdarktheme.setup_theme("auto")
+    qdarktheme.setup_theme("auto")    
+    
+    # if no input specified in args, make a launcher dialog to let the user choose a file to load.
+    if not (cfg["video"] or cfg["images"] or cfg["workspace"] ):
+        launcher = Dialog()
+        result = launcher.exec()
+        if result == QDialog.Accepted:
+            print("Opening video: ", launcher.result)
+            cfg["video"] = launcher.result
+        else:
+            print("User closed launcher")
+            sys.exit()
+
+    # launch the main window
     ex = MainController(cfg)
     sys.exit(app.exec())

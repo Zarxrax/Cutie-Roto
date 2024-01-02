@@ -53,7 +53,7 @@ def get_data_loader(dataset: Dataset, num_workers: int):
                             num_workers=num_workers,
                             collate_fn=lambda x: x)
     else:
-        print(f'Non-linux platform {sys.platform} detected, using single-threaded dataloader')
+        #print(f'Non-linux platform {sys.platform} detected, using single-threaded dataloader')
         loader = DataLoader(dataset,
                             batch_size=None,
                             shuffle=False,
