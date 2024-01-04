@@ -88,16 +88,16 @@ class ResourceManager:
         # create workspace subdirectories
         self.image_dir = path.join(self.workspace, 'images')
         self.mask_dir = path.join(self.workspace, 'masks')
-        self.visualization_dir = path.join(self.workspace, 'visualization')
-        self.soft_mask_dir = path.join(self.workspace, 'soft_masks')
+        #self.visualization_dir = path.join(self.workspace, 'visualization')
+        #self.soft_mask_dir = path.join(self.workspace, 'soft_masks')
         os.makedirs(self.image_dir, exist_ok=True)
         os.makedirs(self.mask_dir, exist_ok=True)
-        os.makedirs(self.visualization_dir, exist_ok=True)
-        os.makedirs(self.soft_mask_dir, exist_ok=True)
+        #os.makedirs(self.visualization_dir, exist_ok=True)
+        #os.makedirs(self.soft_mask_dir, exist_ok=True)
 
         # create all soft mask sub-directories
-        for i in range(1, cfg['num_objects'] + 1):
-            os.makedirs(path.join(self.soft_mask_dir, f'{i}'), exist_ok=True)
+        #for i in range(1, cfg['num_objects'] + 1):
+        #    os.makedirs(path.join(self.soft_mask_dir, f'{i}'), exist_ok=True)
 
         # convert read functions to be buffered
         self.get_image = LRU(self._get_image_unbuffered, maxsize=cfg['buffer_size'])
@@ -162,7 +162,8 @@ class ResourceManager:
                 for i in range(1, num_channels):
                     data = args.data[i]
                     data = (data * 255).astype(np.uint8)
-                    cv2.imwrite(path.join(self.soft_mask_dir, f'{i}', args.name + '.png'), data)
+                    cv2.imwrite(path.join(self.soft_mask_dir, args.name + '.png'), data)
+                    #cv2.imwrite(path.join(self.soft_mask_dir, f'{i}', args.name + '.png'), data)
             else:
                 raise NotImplementedError
             queue.task_done()
@@ -259,6 +260,7 @@ class ResourceManager:
         if size is not None:
             # PIL uses (width, height)
             image = image.resize((size[1], size[0]), resample=Image.Resampling.NEAREST)
+        image = image.convert("L")
         image = image.quantize(colors=2, dither=0)
         image = 1 - np.array(image)
         return image

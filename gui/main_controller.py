@@ -114,7 +114,7 @@ class MainController():
         self.gui.on_mouse_motion_xy = self.on_mouse_motion_xy
         self.gui.click_fn = self.click_fn
 
-        self.gui.show()
+        self.gui.showMaximized()
         self.gui.text('Initialized.')
         self.initialized = True
 

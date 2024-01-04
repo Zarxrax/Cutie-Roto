@@ -110,9 +110,9 @@ class GUI(QWidget):
         #self.save_visualization_checkbox.toggled.connect(controller.on_save_visualization_toggle)
         #self.save_visualization_checkbox.setChecked(False)
 
-        self.save_soft_mask_checkbox = QCheckBox(self)
-        self.save_soft_mask_checkbox.toggled.connect(controller.on_save_soft_mask_toggle)
-        self.save_soft_mask_checkbox.setChecked(False)
+        #self.save_soft_mask_checkbox = QCheckBox(self)
+        #self.save_soft_mask_checkbox.toggled.connect(controller.on_save_soft_mask_toggle)
+        #self.save_soft_mask_checkbox.setChecked(False)
 
         # controls for output FPS and bitrate
         self.fps_dial = QSpinBox()
@@ -229,8 +229,8 @@ class GUI(QWidget):
         overlay_botbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
         overlay_topbox.addWidget(QLabel('Overlay mode'))
         overlay_topbox.addWidget(self.combo)
-        overlay_topbox.addWidget(QLabel('Save soft mask during propagation'))
-        overlay_topbox.addWidget(self.save_soft_mask_checkbox)
+        #overlay_topbox.addWidget(QLabel('Save soft mask during propagation'))
+        #overlay_topbox.addWidget(self.save_soft_mask_checkbox)
         overlay_topbox.addWidget(self.export_binary_button)
         #overlay_botbox.addWidget(QLabel('Save overlay'))
         #overlay_botbox.addWidget(self.save_visualization_checkbox)
