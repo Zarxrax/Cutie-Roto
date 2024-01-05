@@ -50,6 +50,14 @@ class GUI(QWidget):
         self.backward_run_button = QPushButton('Propagate backward')
         self.backward_run_button.clicked.connect(controller.on_backward_propagation)
         self.backward_run_button.setMinimumWidth(150)
+        
+        self.forward_one_button = QPushButton('>')
+        self.forward_one_button.clicked.connect(controller.on_forward_one_propagation)
+        self.forward_one_button.setMinimumWidth(50)
+
+        self.backward_one_button = QPushButton('<')
+        self.backward_one_button.clicked.connect(controller.on_backward_one_propagation)
+        self.backward_one_button.setMinimumWidth(50)
 
         # universal progressbar
         self.progressbar = QProgressBar()
@@ -250,8 +258,10 @@ class GUI(QWidget):
         control_topbox = QHBoxLayout()
         control_botbox = QHBoxLayout()
         control_topbox.addWidget(self.commit_button)
-        control_topbox.addWidget(self.forward_run_button)
         control_topbox.addWidget(self.backward_run_button)
+        control_topbox.addWidget(self.backward_one_button)
+        control_topbox.addWidget(self.forward_one_button)
+        control_topbox.addWidget(self.forward_run_button)
         #control_botbox.addWidget(self.progressbar)
         control_subbox.addLayout(control_topbox)
         control_subbox.addLayout(control_botbox)

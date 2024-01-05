@@ -269,7 +269,7 @@ class MainController():
             self.propagate_fn = self.on_next_frame
             self.gui.forward_propagation_start()
             self.propagate_direction = 'forward'
-            self.on_propagate()
+            self.on_propagate(False)
 
     def on_backward_propagation(self):
         if self.propagating:
@@ -280,14 +280,24 @@ class MainController():
             self.propagate_fn = self.on_prev_frame
             self.gui.backward_propagation_start()
             self.propagate_direction = 'backward'
-            self.on_propagate()
+            self.on_propagate(False)
+            
+    def on_forward_one_propagation(self):
+        self.propagate_fn = self.on_next_frame
+        self.propagate_direction = 'forward'
+        self.on_propagate(True)
+
+    def on_backward_one_propagation(self):
+        self.propagate_fn = self.on_prev_frame
+        self.propagate_direction = 'backward'
+        self.on_propagate(True)
 
     def on_pause(self):
         self.propagating = False
         self.gui.text(f'Propagation stopped at t={self.curr_ti}.')
         self.gui.pause_propagation()
 
-    def on_propagate(self):
+    def on_propagate(self, singleFrame):
         # start to propagate
         with autocast(self.device, enabled=(self.amp and self.device == 'cuda')):
             self.convert_current_image_mask_torch()
@@ -327,7 +337,9 @@ class MainController():
 
                 self.update_memory_gauges()
                 self.gui.process_events()
-
+                
+                if singleFrame:
+                    break
                 if self.curr_ti == 0 or self.curr_ti == self.T - 1:
                     break
 
@@ -336,6 +348,7 @@ class MainController():
             self.on_pause()
             self.on_slider_update()
             self.gui.process_events()
+            
 
     def pause_propagation(self):
         self.propagating = False
@@ -573,6 +586,7 @@ class MainController():
             self.curr_mask = mask
             self.show_current_frame()
             self.save_current_mask()
+            self.on_commit()
 
     def on_open_workspace(self):
         show_in_file_manager(self.res_man.workspace)
