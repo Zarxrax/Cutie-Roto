@@ -19,7 +19,7 @@ max_internal_size: 480
 # maximum size for extracting frames; the output will also be in this size
 # reducing this mainly speed up I/O
 # it should not be smaller than the internal size
-max_overall_size: 1080
+max_overall_size: 2160
 buffer_size: 20
 
 # we use multithreading for saving the results

@@ -541,6 +541,7 @@ class MainController():
                 self.cfg.long_term['max_mem_frames'] = self.gui.work_mem_max.value()
                 self.cfg.long_term['max_num_tokens'] = self.gui.long_mem_max.value()
                 self.cfg['mem_every'] = self.gui.mem_every_box.value()
+                self.cfg['max_internal_size'] = self.gui.quality_box.value()
 
             self.processor.update_config(self.cfg)
 

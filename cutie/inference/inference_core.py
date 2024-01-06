@@ -65,6 +65,7 @@ class InferenceCore:
 
     def update_config(self, cfg):
         self.mem_every = cfg['mem_every']
+        self.max_internal_size = cfg['max_internal_size']
         self.memory.update_config(cfg)
 
     def _add_memory(self,

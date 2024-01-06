@@ -29,9 +29,9 @@ class GUI(QWidget):
         self.T = controller.T
 
         # set up the window
-        self.setWindowTitle(f'Cutie demo: {cfg["workspace"]}')
+        self.setWindowTitle(f'Cutie Roto: {cfg["workspace"]}')
         self.setGeometry(100, 100, self.w + 200, self.h + 200)
-        self.setWindowIcon(QIcon('docs/icon.png'))
+        self.setWindowIcon(QIcon('gui/cutie_r.ico'))
 
         # set up some buttons
         self.play_button = QPushButton('Play video')
@@ -178,6 +178,8 @@ class GUI(QWidget):
             callback=controller.update_config)
         self.mem_every_box, self.mem_every_box_layout = create_parameter_box(
             1, 100, 'Memory frame every (r)', callback=controller.update_config)
+        self.quality_box, self.quality_box_layout = create_parameter_box(
+            480, 1080, 'Max internal resolution', callback=controller.update_config)
 
         # import mask/layer
         self.import_mask_button = QPushButton('Import mask')
@@ -276,7 +278,7 @@ class GUI(QWidget):
         right_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         right_area.addWidget(self.tips)
         # right_area.addStretch(1)
-
+        
         # Parameters
         right_area.addLayout(self.perm_mem_gauge_layout)
         right_area.addLayout(self.work_mem_gauge_layout)
@@ -289,6 +291,7 @@ class GUI(QWidget):
         right_area.addLayout(self.work_mem_max_layout)
         right_area.addLayout(self.long_mem_max_layout)
         right_area.addLayout(self.mem_every_box_layout)
+        right_area.addLayout(self.quality_box_layout)
 
         # import mask/layer/workspace
         import_area = QHBoxLayout()

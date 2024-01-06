@@ -7,6 +7,8 @@ from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLabel,
     QLineEdit, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout,
     QWidget)
 
+from PySide6.QtGui import QIcon
+
 import logging
 from omegaconf import open_dict
 from hydra import compose
@@ -18,7 +20,8 @@ class Launcher_Dialog(object):
             Dialog.setObjectName(u"Dialog")
         Dialog.setWindowModality(Qt.ApplicationModal)
         Dialog.resize(540, 150)
-        Dialog.setWindowTitle("Cutie Launcher")
+        Dialog.setWindowTitle("Cutie Roto Launcher")
+        Dialog.setWindowIcon(QIcon('gui/cutie_y.ico'))
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
