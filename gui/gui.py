@@ -107,7 +107,7 @@ class GUI(QWidget):
         self.combo = QComboBox(self)
         self.combo.addItem("mask")
         self.combo.addItem("overlay")
-        self.combo.addItem("fade")
+        self.combo.addItem("image")
         #self.combo.addItem("light")
         #self.combo.addItem("popup")
         #self.combo.addItem("layer")
