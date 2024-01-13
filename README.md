@@ -5,14 +5,13 @@ Cutie Roto is a fork of [Cutie](https://github.com/hkchengrex/Cutie), and is des
 ### Changes from Cutie:
 - Downloadable package for windows users
 - Launcher to select a video file to work on
+- New export video dialog
 - Ability to import black and white mattes as a mask
 - Simplified interface
 
 ### Roadmap (planned features):
 - Re-Implement brush tool and zoomed view from [XMem](https://github.com/hkchengrex/XMem).
-- Add new export video dialog
-- Automatic mask creation
-- Implement a matting model for edge refinement
+- Investigate implementing a matting model for edge refinement
 - Re-train all models for anime content (original models will also be kept)
 
 ### Installation (Windows):
