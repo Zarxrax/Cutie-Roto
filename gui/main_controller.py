@@ -5,7 +5,7 @@ from typing import Literal
 
 import cv2
 # fix conflicts between qt5 and cv2
-os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
+#os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
 import torch
 try:
@@ -17,6 +17,8 @@ from torchvision.transforms.functional import to_tensor
 import numpy as np
 from omegaconf import DictConfig, open_dict
 from showinfm import show_in_file_manager
+from PySide6.QtWidgets import QDialog
+from gui.exporter_gui import Export_Dialog
 
 from cutie.model.cutie import CUTIE
 from cutie.inference.inference_core import InferenceCore
@@ -27,10 +29,18 @@ from gui.resource_manager import ResourceManager
 from gui.gui import GUI
 from gui.click_controller import ClickController
 from gui.reader import PropagationReader, get_data_loader
-from gui.exporter import convert_frames_to_video, convert_mask_to_binary
+#from gui.exporter import convert_frames_to_video, convert_mask_to_binary
 from scripts.download_models import download_models_if_needed
 
 log = logging.getLogger()
+
+
+class Dialog(QDialog):
+    def __init__(self, parent=None, cfg=None):
+        super().__init__(parent)
+        self.cfg = cfg
+        self.ui = Export_Dialog()
+        self.ui.setupUi(self, self.cfg)
 
 class MainController():
     def __init__(self, cfg: DictConfig) -> None:
@@ -397,6 +407,12 @@ class MainController():
         else:
             self.gui.text(f'No visualization images found in {image_folder}')
 
+    def on_export_video(self):
+        # NOTE: Save visualization at the end of propagation
+        
+        export_dialog = Dialog(None, cfg=self.cfg)
+        export_dialog.exec()
+
     def on_export_binary(self):
         # export masks in binary format for other applications, e.g., ProPainter
         mask_folder = path.join(self.cfg['workspace'], 'masks')
@@ -631,3 +647,4 @@ class MainController():
     @property
     def T(self) -> int:
         return self.res_man.T
+    

@@ -2,13 +2,17 @@
 echo Select PyTorch version to install:
 echo 1. CPU (Select this if you are unsure which option to choose)
 echo 2. CUDA (For NVIDIA GPUs)
-echo 3. Exit
+echo 3. Uninstall Pytorch
+echo 4. Exit
 
-choice /C 123 /N /M "Enter your choice (1, 2, or 3):"
+choice /C 1234 /N /M "Enter your choice (1, 2, 3, or 4):"
 
-if errorlevel 3 (
+if errorlevel 4 (
     echo Exiting without installing PyTorch
     exit /b 0
+) else if errorlevel 3 (
+    echo Uninstalling existing Pytorch
+    .\python-3.11.7-embed-amd64\python.exe -m pip uninstall torch torchvision
 ) else if errorlevel 2 (
     echo Uninstalling existing Pytorch
     .\python-3.11.7-embed-amd64\python.exe -m pip uninstall torch torchvision
@@ -21,5 +25,5 @@ if errorlevel 3 (
     .\python-3.11.7-embed-amd64\python.exe -m pip install torch torchvision
 )
 
-echo Installation Completed.
+echo Completed.
 Pause

@@ -1,16 +1,12 @@
 from os import path
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
+from PySide6.QtCore import (QMetaObject, QRect, QSize, Qt)
 
-from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout, QWidget)
 
 from PySide6.QtGui import QIcon
 
-import logging
-from omegaconf import open_dict
+#import logging
+#from omegaconf import open_dict
 from hydra import compose
 from showinfm import show_in_file_manager
 
@@ -149,13 +145,16 @@ class Launcher_Dialog(object):
         
         #set initial filename from the file last.txt
         try:
+            if not path.exists('cutie/config/last.txt'):
+                with open('cutie/config/last.txt', 'w') as file:
+                    file.write("./examples/example.mp4")
             with open('cutie/config/last.txt', 'r') as file:
                 line = file.readline()
                 self.lineEdit_videofile.setText(path.abspath(line))
         except FileNotFoundError:
             print('Error detecting last opened file. last.txt not found.')
         except Exception as e:
-            print('Error detecting last opened file: {e}')
+            print('Error detecting last opened file: ', e)
             
         self.on_videoFileChanged()
         QMetaObject.connectSlotsByName(Dialog)
