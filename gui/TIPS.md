@@ -6,11 +6,9 @@ The first frame to enter the memory bank is always committed to the permanent me
 Reset memory if needed.
 
 - Use left-click for foreground annotation and right-click for background annotation.
-- Use middle-click to toggle visualization target (for layered, popout, and binary mask export).
-- Use number keys or the spinbox to change the object to be operated on. If it does not respond, most likely the correct number of objects was not specified during program startup.
-- "Export as video" only aggregates visualizations that are saved on disks. You need to check "save overlay" for that to happen.
-- Exported binary/soft masks can be used in other applications like ProPainter. Note inpainting prefer over-segmentation over under-segmentation -- use a larger dilation radius if needed
-- Memory can be corrupted by bad segmentations. Make good use of "reset memory" and do not commit bad segmentations.
-- The "layered" visualization mode inserts an RGBA layer between the foreground and the background. Use "import layer" to select a new layer.
-
-Issues and further documentation: hkchengrex/Cutie
+- Use import mask to import a black and white mask that was created in other software.
+- Use Propogate Forward and Backward buttons to propogate masks across the frames.
+- Use Export as Video to save the output to a video file.
+- Open Workspace to browse intermediate files that have been saved by the program.
+- If you want to delete all work, delete the files in the workspace folder.
+- Max internal resolution is the maximum vertical resolution that the frame propogation operates at. Increasing this value can increase accuracy at the cost of speed and VRAM usage. It is not recommended to go above 720.

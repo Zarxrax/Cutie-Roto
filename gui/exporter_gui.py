@@ -63,8 +63,8 @@ class Export_Dialog(object):
         self.formLayout.setWidget(1, QFormLayout.LabelRole, self.label_Codec)
 
         self.comboBox_Codec = QComboBox(Dialog)
-        self.comboBox_Codec.addItem(u"FFV1 (lossless)")
         self.comboBox_Codec.addItem(u"Prores")
+        self.comboBox_Codec.addItem(u"FFV1")
         self.comboBox_Codec.addItem(u"x264")
         self.comboBox_Codec.addItem(u"x265")
         self.comboBox_Codec.setObjectName(u"comboBox_Codec")
@@ -170,7 +170,7 @@ class Export_Dialog(object):
         self.horizontalLayout_2.addWidget(self.lineEdit_Filename)
 
         self.comboBox_Ext = QComboBox(Dialog)
-        self.comboBox_Ext.addItem(u".avi")
+        self.comboBox_Ext.addItem(u".mov")
         self.comboBox_Ext.addItem(u".mkv")
         self.comboBox_Ext.setObjectName(u"comboBox_Ext")
         sizePolicy2.setHeightForWidth(self.comboBox_Ext.sizePolicy().hasHeightForWidth())
@@ -203,6 +203,10 @@ class Export_Dialog(object):
         self.lineEdit_OutputFolder.setText(path.abspath(cfg['workspace']))
         self.lineEdit_Filename.setText(path.basename(cfg['workspace']))
 
+        #check if masks match images
+        if not self.file_counts_match():
+            QMessageBox.warning(None, "File Count Mismatch", "The number of masks does not match the number of images. Please make sure you propogated masks to all frames, and that no extra files have been copied to the workspace.")
+
         QMetaObject.connectSlotsByName(Dialog)
 
 
@@ -234,8 +238,9 @@ class Export_Dialog(object):
             self.progressBar.setFormat('Generating Composite Images... %p%')
             image_folder = path.join(self.cfg['workspace'], 'images')
             mask_folder = path.join(self.cfg['workspace'], 'binary_masks')
-            images = [img for img in sorted(listdir(image_folder))]
-            masks = [img for img in sorted(listdir(mask_folder))]
+            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
+            masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
+            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
             frame = cv2.imread(path.join(image_folder, images[0])) #read 1 frame to get height and width
             height, width, layers = frame.shape
             makedirs(path.join(self.cfg['workspace'], 'composite'), exist_ok=True)
@@ -266,15 +271,15 @@ class Export_Dialog(object):
     def updateType(self):
         if self.comboBox_Type.currentText() == "Composite on Alpha":
             self.comboBox_Codec.clear()
-            self.comboBox_Codec.addItems(["FFV1 (lossless)", "Prores"])
+            self.comboBox_Codec.addItems(["Prores", "FFV1"])
         else:
             self.comboBox_Codec.clear()
-            self.comboBox_Codec.addItems(["FFV1 (lossless)", "Prores", "x264", "x265"])
+            self.comboBox_Codec.addItems(["Prores", "FFV1", "x264", "x265"])
 
     def updateCodec(self):
         self.comboBox_Ext.clear()
-        if self.comboBox_Codec.currentText() == "FFV1 (lossless)":
-            self.comboBox_Ext.addItems([".avi", ".mkv"])
+        if self.comboBox_Codec.currentText() == "FFV1":
+            self.comboBox_Ext.addItems([".mkv", ".avi"])
             self.spinBox_Quantizer.setEnabled(False)
         elif self.comboBox_Codec.currentText() == "Prores":
             self.comboBox_Ext.addItems([".mov", ".mkv"])
@@ -293,7 +298,7 @@ class Export_Dialog(object):
             fps: int = 24,
             crf: int = 20,
             progress_callback=None) -> None:
-        images = [img for img in sorted(listdir(image_folder))]
+        images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
         frame = cv2.imread(path.join(image_folder, images[0]))
         height, width, layers = frame.shape
 
@@ -305,14 +310,11 @@ class Export_Dialog(object):
         elif self.comboBox_Codec.currentText() == "x265":
             stream = output.add_stream("hevc", rate=fps, pix_fmt='yuv420p')
             stream.options = {'crf':str(crf)}
-        elif self.comboBox_Codec.currentText() == "FFV1 (lossless)":
+        elif self.comboBox_Codec.currentText() == "FFV1":
             stream = output.add_stream("ffv1", rate=fps, pix_fmt='bgra')
         elif self.comboBox_Codec.currentText() == "Prores":
             stream = output.add_stream("prores_ks", rate=fps, pix_fmt='yuva444p10le')
-            stream.options = {'profile':'3'}
-        elif self.comboBox_Codec.currentText() == "DNxHR": #currently disabled, not sure if this format supports alpha
-            stream = output.add_stream("dnxhd", rate=fps, pix_fmt='yuva444p10le')
-            stream.options = {'profile':'dnxhr_444'}
+            stream.options = {'profile':'4'}
         else:
             raise ValueError("Invalid codec")
 
@@ -341,7 +343,7 @@ class Export_Dialog(object):
     
     def convert_mask_to_binary(self, mask_folder: str, output_path: str, progress_callback=None) -> None:
         binary_mask_path = path.join(output_path, 'binary_masks')
-        masks = [img for img in sorted(listdir(mask_folder))]
+        masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
         for i, mask_path in enumerate(masks):
             mask = Image.open(path.join(mask_folder, mask_path))
             mask = np.array(mask)
@@ -352,6 +354,18 @@ class Export_Dialog(object):
             if progress_callback is not None and i % 10 == 0:
                 progress_callback(i / len(masks))
         self.progressbar_update(1.0)
+
+    def file_counts_match(self):
+        image_folder = path.join(self.cfg['workspace'], 'images')
+        mask_folder = path.join(self.cfg['workspace'], 'masks')
+    
+        image_files = [f for f in listdir(image_folder) if f.endswith('.jpg') or f.endswith('.png')]
+        mask_files = [f for f in listdir(mask_folder) if f.endswith('.png')]
+    
+        if len(image_files) == len(mask_files):
+            return True
+        else:
+            return False
 
     def progressbar_update(self, progress: float):
         self.progressBar.setValue(int(progress * 100))
