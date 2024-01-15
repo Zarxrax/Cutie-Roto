@@ -256,6 +256,7 @@ class Export_Dialog(object):
         else:
             QMessageBox.warning(None, "Export Cancelled", "Export cancelled.")
         self.exporting = False
+        self.pushButton_Export.setText("Export")
     
     def updateType(self):
         if self.comboBox_Type.currentText() == "Composite on Alpha":

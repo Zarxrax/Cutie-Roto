@@ -18,4 +18,5 @@ __pycache__/
 python-3.11.7-embed-amd64
 python-3.11.7-embed-amd64/
 
-.cutie/config/last.txt
+cutie/config/last.txt
+.vscode/
