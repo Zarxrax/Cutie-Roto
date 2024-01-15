@@ -7,7 +7,7 @@ import logging
 
 from PySide6.QtCore import (QMetaObject, Qt)
 from PySide6.QtWidgets import (QComboBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QProgressBar, QMessageBox,
-    QPushButton, QFileDialog, QSizePolicy, QSpinBox, QVBoxLayout, QWidget)
+    QPushButton, QFileDialog, QSizePolicy, QSpinBox, QVBoxLayout, QWidget, QApplication)
 from PySide6.QtGui import QIcon
 
 log = logging.getLogger()
@@ -207,6 +207,7 @@ class Export_Dialog(object):
         if not self.file_counts_match():
             QMessageBox.warning(None, "File Count Mismatch", "The number of masks does not match the number of images. Please make sure you propogated masks to all frames, and that no extra files have been copied to the workspace.")
 
+        self.exporting = False
         QMetaObject.connectSlotsByName(Dialog)
 
 
@@ -219,6 +220,10 @@ class Export_Dialog(object):
             self.lineEdit_OutputFolder.setText(path.abspath(folder_name))
 
     def on_exportButtonPressed(self):
+        if self.exporting:
+            self.cancel_exort()
+            return
+
         output_folder = self.lineEdit_OutputFolder.text()
         filename = self.lineEdit_Filename.text() + self.comboBox_Ext.currentText()
         file_path = path.join(output_folder, filename)
@@ -228,6 +233,8 @@ class Export_Dialog(object):
             if reply == QMessageBox.No:
                 return
         
+        self.exporting = True
+        self.pushButton_Export.setText("Cancel")
         makedirs(path.join(self.cfg['workspace'], 'binary_masks'), exist_ok=True)
         self.progressBar.setFormat('Generating Binary Masks... %p%')
         self.convert_mask_to_binary(path.join(self.cfg['workspace'], 'masks'), output_folder, self.progressbar_update)
@@ -238,35 +245,17 @@ class Export_Dialog(object):
             self.progressBar.setFormat('Generating Composite Images... %p%')
             image_folder = path.join(self.cfg['workspace'], 'images')
             mask_folder = path.join(self.cfg['workspace'], 'binary_masks')
-            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
-            masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
-            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
-            frame = cv2.imread(path.join(image_folder, images[0])) #read 1 frame to get height and width
-            height, width, layers = frame.shape
-            makedirs(path.join(self.cfg['workspace'], 'composite'), exist_ok=True)
-            for image, mask in zip(images, masks):
-                image_path = path.join(image_folder, image)
-                mask_path = path.join(mask_folder, mask)
-                img = cv2.imread(image_path)
-                msk = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-                if self.comboBox_Type.currentText() == "Composite on Alpha":
-                    img_with_alpha = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-                    img_with_alpha[:, :, 3] = msk
-                    msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGRA)
-                    comp = img_with_alpha * (msk/255)
-                elif self.comboBox_Type.currentText() == "Composite on Green Screen": 
-                    msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGR)
-                    comp = img * (msk/255)
-                    green = np.zeros_like(img)
-                    green[:, :] = [0, 255, 0]
-                    comp = comp + (green * (cv2.bitwise_not(msk) / 255))
-                cv2.imwrite(path.join(self.cfg['workspace'], 'composite', mask), comp)
-                self.progressbar_update(images.index(image) / len(images))
+            self.generate_composite_images(image_folder, mask_folder, output_folder, self.progressbar_update)
             image_folder = path.join(self.cfg['workspace'], 'composite')
+            
         self.progressBar.setFormat('Exporting Video... %p%')
         self.convert_frames_to_video(image_folder, file_path, self.comboBox_FPS.currentText(), self.spinBox_Quantizer.value(), self.progressbar_update)
         self.progressBar.setFormat('%p%')
-        QMessageBox.information(None, "Done", "Exported to " + file_path)
+        if self.exporting:
+            QMessageBox.information(None, "Done", "Exported to " + file_path)
+        else:
+            QMessageBox.warning(None, "Export Cancelled", "Export cancelled.")
+        self.exporting = False
     
     def updateType(self):
         if self.comboBox_Type.currentText() == "Composite on Alpha":
@@ -322,6 +311,9 @@ class Export_Dialog(object):
         stream.height = height
 
         for i, img_path in enumerate(images):
+            if self.exporting is False:
+                return
+
             if self.comboBox_Type.currentText() == "Composite on Alpha":
                 img = cv2.imread(path.join(image_folder, img_path), cv2.IMREAD_UNCHANGED)
                 frame = av.VideoFrame.from_ndarray(img, format='bgra')
@@ -345,6 +337,9 @@ class Export_Dialog(object):
         binary_mask_path = path.join(output_path, 'binary_masks')
         masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
         for i, mask_path in enumerate(masks):
+            if self.exporting is False:
+                return
+
             mask = Image.open(path.join(mask_folder, mask_path))
             mask = np.array(mask)
             mask = np.where(np.isin(mask, 1), 255, 0)
@@ -354,6 +349,36 @@ class Export_Dialog(object):
             if progress_callback is not None and i % 10 == 0:
                 progress_callback(i / len(masks))
         self.progressbar_update(1.0)
+
+    def generate_composite_images(self, image_folder: str, mask_folder: str, output_path: str, progress_callback=None) -> None:
+            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
+            masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
+            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
+            frame = cv2.imread(path.join(image_folder, images[0])) #read 1 frame to get height and width
+            height, width, layers = frame.shape
+            makedirs(path.join(self.cfg['workspace'], 'composite'), exist_ok=True)
+            for image, mask in zip(images, masks):
+                if self.exporting is False:
+                    return
+                
+                image_path = path.join(image_folder, image)
+                mask_path = path.join(mask_folder, mask)
+                img = cv2.imread(image_path)
+                msk = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+                if self.comboBox_Type.currentText() == "Composite on Alpha":
+                    img_with_alpha = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+                    img_with_alpha[:, :, 3] = msk
+                    msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGRA)
+                    comp = img_with_alpha * (msk/255)
+                elif self.comboBox_Type.currentText() == "Composite on Green Screen": 
+                    msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGR)
+                    comp = img * (msk/255)
+                    green = np.zeros_like(img)
+                    green[:, :] = [0, 255, 0]
+                    comp = comp + (green * (cv2.bitwise_not(msk) / 255))
+                cv2.imwrite(path.join(self.cfg['workspace'], 'composite', mask), comp)
+                self.progressbar_update(images.index(image) / len(images))
+            
 
     def file_counts_match(self):
         image_folder = path.join(self.cfg['workspace'], 'images')
@@ -368,4 +393,13 @@ class Export_Dialog(object):
             return False
 
     def progressbar_update(self, progress: float):
+        QApplication.processEvents() 
         self.progressBar.setValue(int(progress * 100))
+
+    def cancel_exort(self):
+        reply = QMessageBox.question(None, "Cancel Export", "Do you really want to cancel?", QMessageBox.Yes | QMessageBox.No)
+        if reply == QMessageBox.No:
+            return
+        else:
+            self.exporting = False
+            self.pushButton_Export.setText("Export")
