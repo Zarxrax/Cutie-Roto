@@ -16,9 +16,26 @@ Cutie Roto is a fork of [Cutie](https://github.com/hkchengrex/Cutie), and is des
 
 ### Installation (Windows):
 - Download latest version from [releases](https://github.com/Zarxrax/Cutie-Roto/releases)
-- Extract the 7z archive (you may need to install [7-zip](https://www.7-zip.org))
-- Run 'install_pytorch.bat' and follow the prompt.
+- Extract the zip archive.
+- Run 'install_dependencies.bat' and follow the prompt.
 - Run 'run_gui.bat' to launch the software.
+
+### Manual Installation (Linux, Mac)
+#### Prerequisites:
+* [Python](https://www.python.org/) (version 3.11 recommended)
+* [Pytorch](https://pytorch.org) (version 2+ recommended)
+
+#### Clone the repository and install dependencies:
+```
+git clone https://github.com/Zarxrax/Cutie-Roto.git`
+cd Cutie-Roto
+pip install -r requirements.txt
+```
+#### Launch the application:
+```
+python cutie_roto.py
+```
+
 
 ### How to use:
 When you launch the program, you will be prompted to select a video file to load. A workspace folder will also be created for that video. Because the workspace is based on the filename, please avoid working on multiple files that have the same name. At any time, you can delete any workspace folders as long as you don't mind losing any work contained in them.
@@ -30,4 +47,4 @@ You can import masks created in external software by clicking the 'import mask' 
 
 If you want to erase all masked frames and start over, just go to the first frame and press 'Reset frame', then press 'Reset all memory'. Finally, click 'propagate forward' to remove the masks from all remaining frames. 
 
-Once you have finished masking your clip, press the 'Export binary masks' button. A binary masks folder will appear in the workspace, which contains an image sequence that you can import back into an editing application.
+Once you have finished masking your clip, press the 'Export as video' button to create a video file that can be brought back into another application. Various image sequences will also be created in the workspace folder.
