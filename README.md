@@ -6,11 +6,12 @@ Cutie Roto is a fork of [Cutie](https://github.com/hkchengrex/Cutie), and is des
 - Downloadable package for windows users
 - Launcher to select a video file to work on
 - New export video dialog
+- Zoomed minimap inspired from [XMem](https://github.com/hkchengrex/XMem)
 - Ability to import black and white mattes as a mask
 - Simplified interface
 
 ### Roadmap (planned features):
-- Re-Implement brush tool and zoomed view from [XMem](https://github.com/hkchengrex/XMem).
+- Re-Implement brush tool from [XMem](https://github.com/hkchengrex/XMem)
 - Investigate implementing a matting model for edge refinement
 - Re-train all models for anime content (original models will also be kept)
 
@@ -21,13 +22,14 @@ Cutie Roto is a fork of [Cutie](https://github.com/hkchengrex/Cutie), and is des
 - Run 'run_gui.bat' to launch the software.
 
 ### Manual Installation (Linux, Mac)
+I can only test on Windows, so please let me know if there are any issues with this running on Linux or Mac.
 #### Prerequisites:
 * [Python](https://www.python.org/) (version 3.11 recommended)
 * [Pytorch](https://pytorch.org) (version 2+ recommended)
 
 #### Clone the repository and install dependencies:
 ```
-git clone https://github.com/Zarxrax/Cutie-Roto.git`
+git clone https://github.com/Zarxrax/Cutie-Roto.git
 cd Cutie-Roto
 pip install -r requirements.txt
 ```
@@ -48,3 +50,10 @@ You can import masks created in external software by clicking the 'import mask' 
 If you want to erase all masked frames and start over, just go to the first frame and press 'Reset frame', then press 'Reset all memory'. Finally, click 'propagate forward' to remove the masks from all remaining frames. 
 
 Once you have finished masking your clip, press the 'Export as video' button to create a video file that can be brought back into another application. Various image sequences will also be created in the workspace folder.
+
+### Keyboard Shortcuts:
+Left/Right: Previous/Next frame
+Space: Play video
+Backspace: Reset mask on current frame
+Plus/Minus: Zoom in/out on the minimap
+Enter: Commit the current frame to memory

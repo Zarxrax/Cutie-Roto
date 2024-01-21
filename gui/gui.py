@@ -361,9 +361,16 @@ class GUI(QWidget):
             QShortcut(QKeySequence(f"Ctrl+{i}"),
                       self).activated.connect(functools.partial(controller.hit_number_key, i))
 
-        # <- and -> shortcuts
+        # other shortcuts
         QShortcut(QKeySequence(Qt.Key.Key_Left), self).activated.connect(controller.on_prev_frame)
         QShortcut(QKeySequence(Qt.Key.Key_Right), self).activated.connect(controller.on_next_frame)
+        QShortcut(QKeySequence(Qt.Key.Key_Space), self).activated.connect(self.on_play_video)
+        QShortcut(QKeySequence(Qt.Key.Key_Backspace), self).activated.connect(controller.on_reset_mask)
+        QShortcut(QKeySequence(Qt.Key.Key_Plus), self).activated.connect(controller.on_zoom_plus)
+        QShortcut(QKeySequence(Qt.Key.Key_Equal), self).activated.connect(controller.on_zoom_plus)
+        QShortcut(QKeySequence(Qt.Key.Key_Minus), self).activated.connect(controller.on_zoom_minus)
+        QShortcut(QKeySequence(Qt.Key.Key_Return), self).activated.connect(controller.on_commit)
+        QShortcut(QKeySequence(Qt.Key.Key_Enter), self).activated.connect(controller.on_commit)
 
     def resizeEvent(self, event):
         self.controller.show_current_frame()
