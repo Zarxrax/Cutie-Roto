@@ -102,6 +102,9 @@ class MainController():
         self.overlay_layer: np.ndarray = None
         self.overlay_layer_torch: torch.Tensor = None
 
+        # Zoom parameters
+        self.zoom_pixels = 150
+
         # the object id used for popup/layer overlay
         self.vis_target_objects = list(range(1, self.num_objects + 1))
 
@@ -138,7 +141,7 @@ class MainController():
         self.cutie = CUTIE(self.cfg).eval().to(self.device)
         model_weights = torch.load(self.cfg.weights, map_location=self.device)
         self.cutie.load_weights(model_weights)
-
+            
         self.click_ctrl = ClickController(self.cfg.ritm_weights, device=self.device)
 
     def hit_number_key(self, number: int):
@@ -219,6 +222,9 @@ class MainController():
     def update_canvas(self):
         self.gui.set_canvas(self.vis_image)
 
+    def update_minimap(self):
+        self.gui.set_minimap(self.vis_image)
+
     def update_current_image_fast(self):
         # fast path, uses gpu. Changes the image in-place to avoid copying
         # thus current_image_torch must be voided afterwards
@@ -242,6 +248,7 @@ class MainController():
             if self.save_visualization:
                 self.res_man.save_visualization(self.curr_ti, self.vis_mode, self.vis_image)
             self.update_canvas()
+            self.update_minimap()
 
         self.gui.update_slider(self.curr_ti)
         self.gui.frame_name.setText(self.res_man.names[self.curr_ti] + '.jpg')
@@ -635,6 +642,17 @@ class MainController():
     def on_mouse_motion_xy(self, x, y):
         self.last_ex = x
         self.last_ey = y
+        self.update_minimap()
+
+    def on_zoom_plus(self):
+        self.zoom_pixels -= 50
+        self.zoom_pixels = max(50, self.zoom_pixels)
+        self.update_minimap()
+
+    def on_zoom_minus(self):
+        self.zoom_pixels += 50
+        self.zoom_pixels = min(self.zoom_pixels, 300)
+        self.update_minimap()
 
     @property
     def h(self) -> int:

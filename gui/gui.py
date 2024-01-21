@@ -1,13 +1,14 @@
 import functools
 
 import numpy as np
+import cv2
 from omegaconf import DictConfig
 
 from PySide6.QtWidgets import (QWidget, QComboBox, QCheckBox, QFrame, QHBoxLayout, QLabel, QPushButton,
                                QTextEdit, QSpinBox, QPlainTextEdit, QVBoxLayout, QSizePolicy,
                                QButtonGroup, QSlider, QRadioButton, QApplication, QFileDialog)
 
-from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon)
+from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon, QPainter, QPen)
 from PySide6.QtCore import Qt, QTimer
 
 from cutie.utils.palette import davis_palette_np
@@ -21,6 +22,7 @@ class GUI(QWidget):
         # callbacks to be set by the controller
         self.on_mouse_motion_xy = None
         self.click_fn = None
+        self.last_ex = self.last_ey = 0
 
         self.controller = controller
         self.cfg = cfg
@@ -150,6 +152,18 @@ class GUI(QWidget):
         self.main_canvas.setMouseTracking(True)  # Required for all-time tracking
         self.main_canvas.mouseReleaseEvent = self.on_mouse_release
 
+        # Minimap -> Also a QLabel
+        self.minimap = QLabel()
+        self.minimap.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.minimap.setAlignment(Qt.AlignTop)
+        self.minimap.setMinimumSize(100, 100)
+
+        # Zoom-in buttons
+        self.zoom_m_button = QPushButton('Zoom -')
+        self.zoom_m_button.clicked.connect(controller.on_zoom_minus)
+        self.zoom_p_button = QPushButton('Zoom +')
+        self.zoom_p_button.clicked.connect(controller.on_zoom_plus)
+
         # clearing memory
         self.clear_all_mem_button = QPushButton('Reset all memory')
         self.clear_all_mem_button.clicked.connect(controller.on_clear_memory)
@@ -225,8 +239,7 @@ class GUI(QWidget):
         interact_botbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
         navi.addLayout(interact_subbox)
 
-        apply_fixed_size_policy = lambda x: x.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.
-                                                            Policy.Fixed)
+        apply_fixed_size_policy = lambda x: x.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         apply_to_all_children_widget(interact_topbox, apply_fixed_size_policy)
         apply_to_all_children_widget(interact_botbox, apply_fixed_size_policy)
 
@@ -276,17 +289,34 @@ class GUI(QWidget):
         # right area
         right_area = QVBoxLayout()
         right_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
-        right_area.addWidget(self.tips)
+        # right_area.addWidget(self.tips)
         # right_area.addStretch(1)
         
+        # Minimap area
+        mini_label = QLabel('Minimap')
+        mini_label.setAlignment(Qt.AlignTop)
+        right_area.addWidget(mini_label)
+
+        # Minimap zooming
+        minimap_ctrl = QHBoxLayout()
+        minimap_ctrl.setAlignment(Qt.AlignTop)
+        minimap_ctrl.addWidget(self.zoom_m_button)
+        minimap_ctrl.addWidget(self.zoom_p_button)
+        right_area.addLayout(minimap_ctrl)
+        right_area.addWidget(self.minimap)
+
+
         # Parameters
         right_area.addLayout(self.perm_mem_gauge_layout)
         right_area.addLayout(self.work_mem_gauge_layout)
         right_area.addLayout(self.long_mem_gauge_layout)
         right_area.addLayout(self.gpu_mem_gauge_layout)
         right_area.addLayout(self.torch_mem_gauge_layout)
-        right_area.addWidget(self.clear_all_mem_button)
-        right_area.addWidget(self.clear_non_perm_mem_button)
+        clearmem_area = QHBoxLayout()
+        clearmem_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        clearmem_area.addWidget(self.clear_non_perm_mem_button)
+        clearmem_area.addWidget(self.clear_all_mem_button)
+        right_area.addLayout(clearmem_area)
         right_area.addLayout(self.work_mem_min_layout)
         right_area.addLayout(self.work_mem_max_layout)
         right_area.addLayout(self.long_mem_max_layout)
@@ -354,6 +384,24 @@ class GUI(QWidget):
 
         self.main_canvas_size = self.main_canvas.size()
         self.image_size = qImg.size()
+
+    def set_minimap(self, image):
+        ex, ey = self.last_ex, self.last_ey
+
+        image_with_point = np.copy(image)
+        cv2.circle(image_with_point, (int(ex), int(ey)), 1, (255, 0, 0), -1)
+
+        r = self.controller.zoom_pixels//2
+        ex = int(round(max(r, min(self.w - r, ex))))
+        ey = int(round(max(r, min(self.h - r, ey))))
+
+        patch = image_with_point[ey-r:ey+r, ex-r:ex+r, :].astype(np.uint8)
+
+        height, width, channel = patch.shape
+        bytesPerLine = 3 * width
+        qImg = QImage(patch.data, width, height, bytesPerLine, QImage.Format_RGB888)
+        self.minimap.setPixmap(QPixmap(qImg.scaled(self.minimap.size(), Qt.KeepAspectRatio, Qt.FastTransformation)))
+        
 
     def update_slider(self, value):
         self.lcd.setText('{: 3d} / {: 3d}'.format(value, self.controller.T - 1))
@@ -432,6 +480,7 @@ class GUI(QWidget):
     def on_mouse_motion(self, event):
         ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
         self.on_mouse_motion_xy(ex, ey)
+        self.last_ex, self.last_ey = ex, ey
 
     def on_mouse_release(self, event):
         pass
