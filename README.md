@@ -52,8 +52,8 @@ If you want to erase all masked frames and start over, just go to the first fram
 Once you have finished masking your clip, press the 'Export as video' button to create a video file that can be brought back into another application. Various image sequences will also be created in the workspace folder.
 
 ### Keyboard Shortcuts:
-Left/Right: Previous/Next frame
-Space: Play video
-Backspace: Reset mask on current frame
-Plus/Minus: Zoom in/out on the minimap
-Enter: Commit the current frame to memory
+- Left/Right: Previous/Next frame
+- Space: Play video
+- Backspace: Reset mask on current frame
+- Plus/Minus: Zoom in/out on the minimap
+- Enter: Commit the current frame to memory
