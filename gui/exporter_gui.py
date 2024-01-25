@@ -6,7 +6,7 @@ import av
 import logging
 
 from PySide6.QtCore import (QMetaObject, Qt)
-from PySide6.QtWidgets import (QComboBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QProgressBar, QMessageBox,
+from PySide6.QtWidgets import (QComboBox, QCheckBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QProgressBar, QMessageBox,
     QPushButton, QFileDialog, QSizePolicy, QSpinBox, QVBoxLayout, QWidget, QApplication)
 from PySide6.QtGui import QIcon
 
@@ -17,7 +17,7 @@ class Export_Dialog(object):
         self.cfg = cfg
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
-        Dialog.resize(400, 182)
+        Dialog.resize(440, 182)
         Dialog.setWindowIcon(QIcon('gui/cutie_r.ico'))
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -41,6 +41,9 @@ class Export_Dialog(object):
 
         self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_Type)
 
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        
         self.comboBox_Type = QComboBox(Dialog)
         self.comboBox_Type.addItem(u"Matte")
         self.comboBox_Type.addItem(u"Composite on Alpha")
@@ -52,8 +55,15 @@ class Export_Dialog(object):
         sizePolicy2.setHeightForWidth(self.comboBox_Type.sizePolicy().hasHeightForWidth())
         self.comboBox_Type.setSizePolicy(sizePolicy2)
         self.comboBox_Type.setCurrentText(u"Matte")
+        
+        self.checkbox_refine = QCheckBox(Dialog)
+        self.checkbox_refine.setObjectName(u"checkbox_refine")
+        self.checkbox_refine.setText(u"Refine edges")
+        self.checkbox_refine.setChecked(True)
 
-        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.comboBox_Type)
+        self.horizontalLayout_3.addWidget(self.comboBox_Type)
+        self.horizontalLayout_3.addWidget(self.checkbox_refine)
+        self.formLayout.setLayout(0, QFormLayout.FieldRole, self.horizontalLayout_3)
 
         self.label_Codec = QLabel(Dialog)
         self.label_Codec.setObjectName(u"label_Codec")
@@ -67,6 +77,7 @@ class Export_Dialog(object):
         self.comboBox_Codec.addItem(u"FFV1")
         self.comboBox_Codec.addItem(u"x264")
         self.comboBox_Codec.addItem(u"x265")
+        self.comboBox_Codec.addItem(u"None")
         self.comboBox_Codec.setObjectName(u"comboBox_Codec")
         sizePolicy2.setHeightForWidth(self.comboBox_Codec.sizePolicy().hasHeightForWidth())
         self.comboBox_Codec.setSizePolicy(sizePolicy2)
@@ -235,39 +246,53 @@ class Export_Dialog(object):
         
         self.exporting = True
         self.pushButton_Export.setText("Cancel")
-        makedirs(path.join(self.cfg['workspace'], 'binary_masks'), exist_ok=True)
-        self.progressBar.setFormat('Generating Binary Masks... %p%')
-        self.convert_mask_to_binary(path.join(self.cfg['workspace'], 'masks'), output_folder, self.progressbar_update)
+        #makedirs(path.join(self.cfg['workspace'], 'binary_masks'), exist_ok=True)
+        #self.progressBar.setFormat('Generating Binary Masks... %p%')
+        #self.convert_mask_to_binary(path.join(self.cfg['workspace'], 'masks'), output_folder, self.progressbar_update)
         
+        if self.checkbox_refine.isChecked():
+            self.progressBar.setFormat('Refining Masks... %p%')
+            self.refine_masks(path.join(self.cfg['workspace'], 'masks'), path.join(self.cfg['workspace'], 'soft_masks'), output_folder, self.progressbar_update)
+
         if self.comboBox_Type.currentText() == "Matte":
-            image_folder = path.join(self.cfg['workspace'], 'binary_masks')
+            image_folder = path.join(self.cfg['workspace'], 'masks')
         else:
             self.progressBar.setFormat('Generating Composite Images... %p%')
             image_folder = path.join(self.cfg['workspace'], 'images')
-            mask_folder = path.join(self.cfg['workspace'], 'binary_masks')
+            if self.checkbox_refine.isChecked():
+                mask_folder = path.join(self.cfg['workspace'], 'refined_masks')
+            else: 
+                mask_folder = path.join(self.cfg['workspace'], 'masks')
             self.generate_composite_images(image_folder, mask_folder, output_folder, self.progressbar_update)
             image_folder = path.join(self.cfg['workspace'], 'composite')
-            
-        self.progressBar.setFormat('Exporting Video... %p%')
-        self.convert_frames_to_video(image_folder, file_path, self.comboBox_FPS.currentText(), self.spinBox_Quantizer.value(), self.progressbar_update)
+
+        if self.comboBox_Codec.currentText() != "None":
+            self.progressBar.setFormat('Exporting Video... %p%')
+            self.convert_frames_to_video(image_folder, file_path, self.comboBox_FPS.currentText(), self.spinBox_Quantizer.value(), self.progressbar_update)
+        
         self.progressBar.setFormat('%p%')
+        self.pushButton_Export.setText("Export")
         if self.exporting:
-            QMessageBox.information(None, "Done", "Exported to " + file_path)
+            if self.comboBox_Codec.currentText() == "None": 
+                QMessageBox.information(None, "Done", "Generated images only.")
+            else:
+                QMessageBox.information(None, "Done", "Exported to " + file_path)
         else:
             QMessageBox.warning(None, "Export Cancelled", "Export cancelled.")
         self.exporting = False
-        self.pushButton_Export.setText("Export")
     
     def updateType(self):
         if self.comboBox_Type.currentText() == "Composite on Alpha":
             self.comboBox_Codec.clear()
-            self.comboBox_Codec.addItems(["Prores", "FFV1"])
+            self.comboBox_Codec.addItems(["Prores", "FFV1", "None"])
         else:
             self.comboBox_Codec.clear()
-            self.comboBox_Codec.addItems(["Prores", "FFV1", "x264", "x265"])
+            self.comboBox_Codec.addItems(["Prores", "FFV1", "x264", "x265", "None"])
 
     def updateCodec(self):
         self.comboBox_Ext.clear()
+        self.comboBox_Ext.setEnabled(True)
+        self.lineEdit_Filename.setEnabled(True)
         if self.comboBox_Codec.currentText() == "FFV1":
             self.comboBox_Ext.addItems([".mkv", ".avi"])
             self.spinBox_Quantizer.setEnabled(False)
@@ -277,6 +302,9 @@ class Export_Dialog(object):
         elif self.comboBox_Codec.currentText() == "x264" or self.comboBox_Codec.currentText() == "x265":
             self.comboBox_Ext.addItems([".mp4", ".mov", ".mkv"])
             self.spinBox_Quantizer.setEnabled(True)
+        elif self.comboBox_Codec.currentText() == "None":
+            self.comboBox_Ext.setEnabled(False)
+            self.lineEdit_Filename.setEnabled(False)
         else:
             self.comboBox_Ext.addItems([".avi", ".mp4", ".mov", ".mkv"])
             self.spinBox_Quantizer.setEnabled(False)
@@ -351,34 +379,63 @@ class Export_Dialog(object):
                 progress_callback(i / len(masks))
         self.progressbar_update(1.0)
 
+    def refine_masks(self, mask_folder: str, soft_mask_folder: str, output_path: str, progress_callback=None) -> None:
+        refined_mask_path = path.join(output_path, 'refined_masks')
+        masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
+        soft_masks = [img for img in sorted(listdir(soft_mask_folder)) if img.endswith(".png")]
+        makedirs(refined_mask_path, exist_ok=True)
+        for mask, soft_mask in zip(masks, soft_masks):
+            if self.exporting is False:
+                return
+            
+            mask_path = path.join(mask_folder, mask)
+            soft_path = path.join(soft_mask_folder, soft_mask)
+            bmsk = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+            smsk = cv2.imread(soft_path, cv2.IMREAD_GRAYSCALE)
+
+            #refine mask
+            bmsk_erosion = cv2.erode(bmsk, None, iterations=3) 
+            bmsk_dilation = cv2.dilate(bmsk, None, iterations=2) 
+            bmsk_erosion = cv2.GaussianBlur(bmsk_erosion, (5, 5), 0)
+            bmsk_dilation = cv2.GaussianBlur(bmsk_dilation, (5, 5), 0)
+            add_mask = cv2.add(smsk, bmsk_erosion)
+            sub_mask = cv2.subtract(smsk, bmsk_dilation)
+            refined_mask = cv2.subtract(add_mask, sub_mask)
+
+            cv2.imwrite(path.join(refined_mask_path, mask), refined_mask)
+
+            self.progressbar_update(soft_masks.index(soft_mask) / len(soft_masks))
+        self.progressbar_update(1.0)
+
     def generate_composite_images(self, image_folder: str, mask_folder: str, output_path: str, progress_callback=None) -> None:
-            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
-            masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
-            images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
-            frame = cv2.imread(path.join(image_folder, images[0])) #read 1 frame to get height and width
-            height, width, layers = frame.shape
-            makedirs(path.join(self.cfg['workspace'], 'composite'), exist_ok=True)
-            for image, mask in zip(images, masks):
-                if self.exporting is False:
-                    return
-                
-                image_path = path.join(image_folder, image)
-                mask_path = path.join(mask_folder, mask)
-                img = cv2.imread(image_path)
-                msk = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-                if self.comboBox_Type.currentText() == "Composite on Alpha":
-                    img_with_alpha = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-                    img_with_alpha[:, :, 3] = msk
-                    msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGRA)
-                    comp = img_with_alpha * (msk/255)
-                elif self.comboBox_Type.currentText() == "Composite on Green Screen": 
-                    msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGR)
-                    comp = img * (msk/255)
-                    green = np.zeros_like(img)
-                    green[:, :] = [0, 255, 0]
-                    comp = comp + (green * (cv2.bitwise_not(msk) / 255))
-                cv2.imwrite(path.join(self.cfg['workspace'], 'composite', mask), comp)
-                self.progressbar_update(images.index(image) / len(images))
+        images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
+        masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
+        images = [img for img in sorted(listdir(image_folder)) if (img.endswith(".jpg") or img.endswith(".png"))]
+        frame = cv2.imread(path.join(image_folder, images[0])) #read 1 frame to get height and width
+        height, width, layers = frame.shape
+        makedirs(path.join(self.cfg['workspace'], 'composite'), exist_ok=True)
+        for image, mask in zip(images, masks):
+            if self.exporting is False:
+                return
+            
+            image_path = path.join(image_folder, image)
+            mask_path = path.join(mask_folder, mask)
+            img = cv2.imread(image_path)
+            msk = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+            if self.comboBox_Type.currentText() == "Composite on Alpha":
+                img_with_alpha = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+                img_with_alpha[:, :, 3] = msk
+                msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGRA)
+                comp = img_with_alpha * (msk/255)
+            elif self.comboBox_Type.currentText() == "Composite on Green Screen": 
+                msk = cv2.cvtColor(msk, cv2.COLOR_GRAY2BGR)
+                comp = img * (msk/255)
+                green = np.zeros_like(img)
+                green[:, :] = [0, 255, 0]
+                comp = comp + (green * (cv2.bitwise_not(msk) / 255))
+            cv2.imwrite(path.join(self.cfg['workspace'], 'composite', mask), comp)
+            self.progressbar_update(images.index(image) / len(images))
+        self.progressbar_update(1.0)
             
 
     def file_counts_match(self):
