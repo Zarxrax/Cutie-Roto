@@ -4,6 +4,10 @@ davis_palette = b'\x00\x00\x00\x80\x00\x00\x00\x80\x00\x80\x80\x00\x00\x00\x80\x
 
 youtube_palette = b'\x00\x00\x00\xec_g\xf9\x91W\xfa\xc8c\x99\xc7\x94b\xb3\xb2f\x99\xcc\xc5\x94\xc5\xabyg\xff\xff\xffes~\x0b\x0b\x0b\x0c\x0c\x0c\r\r\r\x0e\x0e\x0e\x0f\x0f\x0f'
 
+basic_palette = b'\x00\x00\x00\xff\xff\xff'
+
 davis_palette_np = np.frombuffer(davis_palette, dtype=np.uint8).reshape(-1, 3)
 
 youtube_palette_np = np.frombuffer(youtube_palette, dtype=np.uint8).reshape(-1, 3)
+
+basic_palette_np = np.frombuffer(basic_palette, dtype=np.uint8).reshape(-1, 3)

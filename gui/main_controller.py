@@ -96,7 +96,7 @@ class MainController():
         self.vis_mode: str = 'overlay'
         self.vis_image: np.ndarray = None
         self.save_visualization: bool = False
-        self.save_soft_mask: bool = False
+        self.save_soft_mask: bool = True
 
         self.interacted_prob: torch.Tensor = None
         self.overlay_layer: np.ndarray = None

@@ -14,7 +14,7 @@ if not hasattr(Image, 'Resampling'):  # Pillow<9.0
     Image.Resampling = Image
 import numpy as np
 
-from cutie.utils.palette import davis_palette
+from cutie.utils.palette import basic_palette
 from tqdm import tqdm
 
 log = logging.getLogger()
@@ -57,7 +57,7 @@ class ResourceManager:
         video = cfg['video']
         self.workspace = cfg['workspace']
         self.max_size = cfg['max_overall_size']
-        self.palette = davis_palette
+        self.palette = basic_palette
 
         # create temporary workspace if not specified
         if self.workspace is None:
@@ -89,11 +89,11 @@ class ResourceManager:
         self.image_dir = path.join(self.workspace, 'images')
         self.mask_dir = path.join(self.workspace, 'masks')
         #self.visualization_dir = path.join(self.workspace, 'visualization')
-        #self.soft_mask_dir = path.join(self.workspace, 'soft_masks')
+        self.soft_mask_dir = path.join(self.workspace, 'soft_masks')
         os.makedirs(self.image_dir, exist_ok=True)
         os.makedirs(self.mask_dir, exist_ok=True)
         #os.makedirs(self.visualization_dir, exist_ok=True)
-        #os.makedirs(self.soft_mask_dir, exist_ok=True)
+        os.makedirs(self.soft_mask_dir, exist_ok=True)
 
         # create all soft mask sub-directories
         #for i in range(1, cfg['num_objects'] + 1):
