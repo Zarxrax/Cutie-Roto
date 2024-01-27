@@ -39,25 +39,36 @@ class GUI(QWidget):
         self.play_button = QPushButton('Play video')
         self.play_button.clicked.connect(self.on_play_video)
         self.commit_button = QPushButton('Commit to permanent memory')
+        self.commit_button.setToolTip('Store this mask in memory so it can be used as a reference for other frames.')
         self.commit_button.clicked.connect(controller.on_commit)
         self.export_video_button = QPushButton('Export as video')
         self.export_video_button.clicked.connect(controller.on_export_video)
         #self.export_binary_button = QPushButton('Export binary masks')
         #self.export_binary_button.clicked.connect(controller.on_export_binary)
 
+
+        self.full_run_button = QPushButton('Full Propagate')
+        self.full_run_button.setToolTip('Generate masks on the whole video from the beginning.')
+        self.full_run_button.clicked.connect(controller.on_full_propagation)
+        self.full_run_button.setMinimumWidth(150)
+
         self.forward_run_button = QPushButton('Propagate forward')
+        self.forward_run_button.setToolTip('Generate masks for the frames after this one.')
         self.forward_run_button.clicked.connect(controller.on_forward_propagation)
         self.forward_run_button.setMinimumWidth(150)
 
         self.backward_run_button = QPushButton('Propagate backward')
+        self.backward_run_button.setToolTip('Generate masks for the frames before this one.')
         self.backward_run_button.clicked.connect(controller.on_backward_propagation)
         self.backward_run_button.setMinimumWidth(150)
         
         self.forward_one_button = QPushButton('>')
+        self.forward_one_button.setToolTip('Generate mask for the next frame.')
         self.forward_one_button.clicked.connect(controller.on_forward_one_propagation)
         self.forward_one_button.setMinimumWidth(50)
 
         self.backward_one_button = QPushButton('<')
+        self.backward_one_button.setToolTip('Generate mask for the previous frame.')
         self.backward_one_button.clicked.connect(controller.on_backward_one_propagation)
         self.backward_one_button.setMinimumWidth(50)
 
@@ -168,6 +179,7 @@ class GUI(QWidget):
         self.clear_all_mem_button = QPushButton('Reset all memory')
         self.clear_all_mem_button.clicked.connect(controller.on_clear_memory)
         self.clear_non_perm_mem_button = QPushButton('Reset non-permanent memory')
+        self.clear_non_perm_mem_button.setToolTip('Clear all memory except frames which were explicitly committed.')
         self.clear_non_perm_mem_button.clicked.connect(controller.on_clear_non_permanent_memory)
 
         # displaying memory usage
@@ -175,7 +187,7 @@ class GUI(QWidget):
         self.work_mem_gauge, self.work_mem_gauge_layout = create_gauge('Working memory size')
         self.long_mem_gauge, self.long_mem_gauge_layout = create_gauge('Long-term memory size')
         self.gpu_mem_gauge, self.gpu_mem_gauge_layout = create_gauge(
-            'GPU mem. (all proc, w/ caching)')
+            'GPU memory usage')
         self.torch_mem_gauge, self.torch_mem_gauge_layout = create_gauge(
             'GPU mem. (torch, w/o caching)')
 
@@ -193,7 +205,19 @@ class GUI(QWidget):
         self.mem_every_box, self.mem_every_box_layout = create_parameter_box(
             1, 100, 'Memory frame every (r)', callback=controller.update_config)
         self.quality_box, self.quality_box_layout = create_parameter_box(
-            480, 1080, 'Max internal resolution', callback=controller.update_config)
+            400, 1080, 'Max internal resolution', step=8, callback=controller.update_config)
+        
+        self.quality_label = QLabel(u"Processing Quality")
+        self.quality_label.setAlignment(Qt.AlignRight)
+        self.comboBox_quality = QComboBox()
+        self.comboBox_quality.setToolTip(u"Higher settings use more processing power and VRAM.\nLow: Recommended if you have 4GB of VRAM.\nNormal: Recommended if you have 6-8GB of VRAM.\nHigh: Recommended if you have 12GB or more of VRAM.\nUltra: Recommended if you have 24GB or more of VRAM.")
+        self.comboBox_quality.addItem(u"Low")
+        self.comboBox_quality.addItem(u"Normal")
+        self.comboBox_quality.addItem(u"High")
+        self.comboBox_quality.addItem(u"Ultra")        
+        self.comboBox_quality.setObjectName(u"comboBox_quality")
+        self.comboBox_quality.setCurrentText("Normal")
+        self.comboBox_quality.currentIndexChanged.connect(controller.on_quality_change)
 
         # import mask/layer
         self.import_mask_button = QPushButton('Import mask')
@@ -229,6 +253,7 @@ class GUI(QWidget):
         interact_topbox.addWidget(self.lcd)
         interact_topbox.addWidget(self.play_button)
         interact_topbox.addWidget(self.reset_frame_button)
+        interact_topbox.addWidget(self.commit_button)
         #interact_topbox.addWidget(self.reset_object_button)
         #interact_botbox.addWidget(QLabel('Current object ID:'))
         #interact_botbox.addWidget(self.object_dial)
@@ -272,7 +297,7 @@ class GUI(QWidget):
         control_subbox = QVBoxLayout()
         control_topbox = QHBoxLayout()
         control_botbox = QHBoxLayout()
-        control_topbox.addWidget(self.commit_button)
+        control_topbox.addWidget(self.full_run_button)
         control_topbox.addWidget(self.backward_run_button)
         control_topbox.addWidget(self.backward_one_button)
         control_topbox.addWidget(self.forward_one_button)
@@ -289,8 +314,7 @@ class GUI(QWidget):
         # right area
         right_area = QVBoxLayout()
         right_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
-        # right_area.addWidget(self.tips)
-        # right_area.addStretch(1)
+        
         
         # Minimap area
         mini_label = QLabel('Minimap')
@@ -304,24 +328,30 @@ class GUI(QWidget):
         minimap_ctrl.addWidget(self.zoom_p_button)
         right_area.addLayout(minimap_ctrl)
         right_area.addWidget(self.minimap)
-
+        right_area.addWidget(self.tips)
+        right_area.addStretch(1)
 
         # Parameters
         right_area.addLayout(self.perm_mem_gauge_layout)
         right_area.addLayout(self.work_mem_gauge_layout)
         right_area.addLayout(self.long_mem_gauge_layout)
         right_area.addLayout(self.gpu_mem_gauge_layout)
-        right_area.addLayout(self.torch_mem_gauge_layout)
+        #right_area.addLayout(self.torch_mem_gauge_layout)
         clearmem_area = QHBoxLayout()
         clearmem_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         clearmem_area.addWidget(self.clear_non_perm_mem_button)
         clearmem_area.addWidget(self.clear_all_mem_button)
         right_area.addLayout(clearmem_area)
-        right_area.addLayout(self.work_mem_min_layout)
-        right_area.addLayout(self.work_mem_max_layout)
-        right_area.addLayout(self.long_mem_max_layout)
-        right_area.addLayout(self.mem_every_box_layout)
-        right_area.addLayout(self.quality_box_layout)
+        #right_area.addLayout(self.work_mem_min_layout)
+        #right_area.addLayout(self.work_mem_max_layout)
+        #right_area.addLayout(self.long_mem_max_layout)
+        #right_area.addLayout(self.mem_every_box_layout)
+        #right_area.addLayout(self.quality_box_layout)
+        quality_area = QHBoxLayout()
+        quality_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        quality_area.addWidget(self.quality_label)
+        quality_area.addWidget(self.comboBox_quality)
+        right_area.addLayout(quality_area)
 
         # import mask/layer/workspace
         import_area = QHBoxLayout()
@@ -449,21 +479,38 @@ class GUI(QWidget):
 
         return x, y
 
+    def full_propagation_start(self):
+        self.backward_run_button.setEnabled(False)
+        self.forward_run_button.setEnabled(False)
+        self.forward_one_button.setEnabled(False)
+        self.backward_one_button.setEnabled(False)
+        self.full_run_button.setText('Pause propagation')
+    
     def forward_propagation_start(self):
         self.backward_run_button.setEnabled(False)
+        self.full_run_button.setEnabled(False)
+        self.forward_one_button.setEnabled(False)
+        self.backward_one_button.setEnabled(False)
         self.forward_run_button.setText('Pause propagation')
 
     def backward_propagation_start(self):
         self.forward_run_button.setEnabled(False)
+        self.full_run_button.setEnabled(False)
+        self.forward_one_button.setEnabled(False)
+        self.backward_one_button.setEnabled(False)
         self.backward_run_button.setText('Pause propagation')
 
     def pause_propagation(self):
+        self.full_run_button.setEnabled(True)
         self.forward_run_button.setEnabled(True)
         self.backward_run_button.setEnabled(True)
+        self.forward_one_button.setEnabled(True)
+        self.backward_one_button.setEnabled(True)
         self.clear_all_mem_button.setEnabled(True)
         self.clear_non_perm_mem_button.setEnabled(True)
         self.forward_run_button.setText('Propagate forward')
-        self.backward_run_button.setText('propagate backward')
+        self.backward_run_button.setText('Propagate backward')
+        self.full_run_button.setText('Full propagation')
         self.tl_slider.setEnabled(True)
 
     def process_events(self):

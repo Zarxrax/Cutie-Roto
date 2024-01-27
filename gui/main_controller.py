@@ -260,6 +260,7 @@ class MainController():
     def save_current_mask(self):
         # save mask to hard disk
         self.res_man.save_mask(self.curr_ti, self.curr_mask)
+        #self.res_man.save_soft_mask(self.curr_ti, self.curr_prob.cpu().numpy())
 
     def on_slider_update(self):
         # if we are propagating, the on_run function will take care of everything
@@ -276,6 +277,16 @@ class MainController():
             self.curr_ti = self.gui.tl_slider.value()
             self.load_current_image_mask()
             self.show_current_frame()
+
+    def on_full_propagation(self):
+        if self.propagating:
+            # acts as a pause button
+            self.propagating = False
+            self.propagate_direction = 'none'
+        else: 
+            self.on_clear_non_permanent_memory()
+            self.curr_ti = 0
+            self.on_forward_propagation()
 
     def on_forward_propagation(self):
         if self.propagating:
@@ -415,8 +426,6 @@ class MainController():
             self.gui.text(f'No visualization images found in {image_folder}')
 
     def on_export_video(self):
-        # NOTE: Save visualization at the end of propagation
-        
         export_dialog = Dialog(None, cfg=self.cfg)
         export_dialog.exec()
 
@@ -556,6 +565,25 @@ class MainController():
                 max(self.gui.work_mem_max.value(),
                     self.gui.work_mem_min.value() + 1))
             self.update_config()
+
+    def on_quality_change(self):
+        if self.initialized:
+            if self.gui.comboBox_quality.currentText() == 'Low':
+                self.gui.long_mem_max.setValue(3000)
+                self.gui.quality_box.setValue(400)
+            elif self.gui.comboBox_quality.currentText() == 'Normal':
+                self.gui.long_mem_max.setValue(4000)
+                self.gui.quality_box.setValue(480)
+            elif self.gui.comboBox_quality.currentText() == 'High':
+                self.gui.long_mem_max.setValue(4000)
+                self.gui.quality_box.setValue(540)
+            elif self.gui.comboBox_quality.currentText() == 'Ultra':
+                self.gui.long_mem_max.setValue(4000)
+                self.gui.quality_box.setValue(720)
+            print(self.gui.long_mem_max.value())
+            print(self.gui.quality_box.value())
+            self.update_config()
+
 
     def update_config(self):
         if self.initialized:

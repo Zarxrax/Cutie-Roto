@@ -49,7 +49,7 @@ long_term:
   max_mem_frames: 10
   min_mem_frames: 5
   num_prototypes: 128
-  max_num_tokens: 10000
+  max_num_tokens: 4000
   buffer_tokens: 2000
 
 save_aux: False

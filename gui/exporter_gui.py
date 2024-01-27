@@ -45,6 +45,7 @@ class Export_Dialog(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         
         self.comboBox_Type = QComboBox(Dialog)
+        self.comboBox_Type.setToolTip(u"Matte: Outputs a black and white matte.\nComposite on alpha: Outputs the masked area with an alpha channel.\nComposite on green screen: Outputs the masked area against a green background.")
         self.comboBox_Type.addItem(u"Matte")
         self.comboBox_Type.addItem(u"Composite on Alpha")
         self.comboBox_Type.addItem(u"Composite on Green Screen")        
@@ -57,9 +58,10 @@ class Export_Dialog(object):
         self.comboBox_Type.setCurrentText(u"Matte")
         
         self.checkbox_refine = QCheckBox(Dialog)
+        self.checkbox_refine.setToolTip(u"Refine the edges of the mask to improve the quality of the output.\nThis should be used ONLY if you have run full propagate after making changines to individual frames,\notherwise some frames may contain an outdated mask.")
         self.checkbox_refine.setObjectName(u"checkbox_refine")
         self.checkbox_refine.setText(u"Refine edges")
-        self.checkbox_refine.setChecked(True)
+        self.checkbox_refine.setChecked(False)
 
         self.horizontalLayout_3.addWidget(self.comboBox_Type)
         self.horizontalLayout_3.addWidget(self.checkbox_refine)
@@ -73,6 +75,7 @@ class Export_Dialog(object):
         self.formLayout.setWidget(1, QFormLayout.LabelRole, self.label_Codec)
 
         self.comboBox_Codec = QComboBox(Dialog)
+        self.comboBox_Codec.setToolTip(u"The codec to use for the exported video.\nProres is recommended if your editing software supports it.")
         self.comboBox_Codec.addItem(u"Prores")
         self.comboBox_Codec.addItem(u"FFV1")
         self.comboBox_Codec.addItem(u"x264")
@@ -92,11 +95,12 @@ class Export_Dialog(object):
         self.formLayout.setWidget(3, QFormLayout.LabelRole, self.label_Quantizer)
 
         self.spinBox_Quantizer = QSpinBox(Dialog)
+        self.spinBox_Quantizer.setToolTip(u"Quantizer value to use with x264 and x265.\nLower value = higher quality and larger filesize.")
         self.spinBox_Quantizer.setObjectName(u"spinBox_Quantizer")
         sizePolicy2.setHeightForWidth(self.spinBox_Quantizer.sizePolicy().hasHeightForWidth())
         self.spinBox_Quantizer.setSizePolicy(sizePolicy2)
         self.spinBox_Quantizer.setMaximum(51)
-        self.spinBox_Quantizer.setValue(20)
+        self.spinBox_Quantizer.setValue(14)
         self.spinBox_Quantizer.setEnabled(False)
 
         self.formLayout.setWidget(3, QFormLayout.FieldRole, self.spinBox_Quantizer)
@@ -153,6 +157,7 @@ class Export_Dialog(object):
         self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_FPS)
 
         self.comboBox_FPS = QComboBox(Dialog)
+        self.comboBox_FPS.setToolTip(u"The frame rate to use for the exported video.")
         self.comboBox_FPS.addItem(u"23.976")
         self.comboBox_FPS.addItem(u"24")
         self.comboBox_FPS.addItem(u"29.97")
@@ -195,7 +200,8 @@ class Export_Dialog(object):
 
         self.verticalLayout.addLayout(self.formLayout)
 
-        QWidget.setTabOrder(self.comboBox_Type, self.comboBox_Codec)
+        QWidget.setTabOrder(self.comboBox_Type, self.checkbox_refine)
+        QWidget.setTabOrder(self.checkbox_refine, self.comboBox_Codec)
         QWidget.setTabOrder(self.comboBox_Codec, self.comboBox_FPS)
         QWidget.setTabOrder(self.comboBox_FPS, self.spinBox_Quantizer)
         QWidget.setTabOrder(self.spinBox_Quantizer, self.lineEdit_OutputFolder)
