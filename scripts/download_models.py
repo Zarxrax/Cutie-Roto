@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 _links = [
     ('https://github.com/hkchengrex/Cutie/releases/download/v1.0/coco_lvis_h18_itermask.pth', '6fb97de7ea32f4856f2e63d146a09f31'),
+    ('https://github.com/Zarxrax/Cutie-Roto/releases/download/aniclick_v1/aniclick_h18_itermask.pth', '3c5d4a84f5613e088a252f57859e34f3'),
     ('https://github.com/hkchengrex/Cutie/releases/download/v1.0/cutie-base-mega.pth', 'a6071de6136982e396851903ab4c083a'),
 ]
 

@@ -219,6 +219,16 @@ class GUI(QWidget):
         self.comboBox_quality.setCurrentText("Normal")
         self.comboBox_quality.currentIndexChanged.connect(controller.on_quality_change)
 
+        self.modelselect_label = QLabel(u"Click Segmentation Model")
+        self.modelselect_label.setAlignment(Qt.AlignRight)
+        self.comboBox_modelselect = QComboBox()
+        self.comboBox_modelselect.setToolTip(u"Select the model you want to use when clicking on the image. Does not affect frame propagation.\nThe anime model is heavily biased towards characters, and wants to select all characters in the image.")
+        self.comboBox_modelselect.setObjectName(u"comboBox_modelselect")
+        self.comboBox_modelselect.addItem(u"Standard")
+        self.comboBox_modelselect.addItem(u"Anime")
+        self.comboBox_modelselect.setCurrentText("Standard")
+        self.comboBox_modelselect.currentIndexChanged.connect(controller.on_modelselect_change)
+
         # import mask/layer
         self.import_mask_button = QPushButton('Import mask')
         self.import_mask_button.clicked.connect(controller.on_import_mask)
@@ -329,7 +339,7 @@ class GUI(QWidget):
         right_area.addLayout(minimap_ctrl)
         right_area.addWidget(self.minimap)
         right_area.addWidget(self.tips)
-        right_area.addStretch(1)
+        #right_area.addStretch(1)
 
         # Parameters
         right_area.addLayout(self.perm_mem_gauge_layout)
@@ -347,11 +357,6 @@ class GUI(QWidget):
         #right_area.addLayout(self.long_mem_max_layout)
         #right_area.addLayout(self.mem_every_box_layout)
         #right_area.addLayout(self.quality_box_layout)
-        quality_area = QHBoxLayout()
-        quality_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
-        quality_area.addWidget(self.quality_label)
-        quality_area.addWidget(self.comboBox_quality)
-        right_area.addLayout(quality_area)
 
         # import mask/layer/workspace
         import_area = QHBoxLayout()
@@ -360,6 +365,20 @@ class GUI(QWidget):
         #import_area.addWidget(self.import_layer_button)
         import_area.addWidget(self.open_workspace_button)
         right_area.addLayout(import_area)
+
+        #quality combobox
+        quality_area = QHBoxLayout()
+        quality_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        quality_area.addWidget(self.quality_label)
+        quality_area.addWidget(self.comboBox_quality)
+        right_area.addLayout(quality_area)
+
+        #quality combobox
+        modelselect_area = QHBoxLayout()
+        modelselect_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        modelselect_area.addWidget(self.modelselect_label)
+        modelselect_area.addWidget(self.comboBox_modelselect)
+        right_area.addLayout(modelselect_area)
 
         # console
         right_area.addWidget(self.console)

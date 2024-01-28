@@ -5,6 +5,8 @@ Basic workflow: annotate objects on one or more frames and use propagation to co
 Commit good frames to permanent memory for best results. Reset memory if needed.
 
 - Use left-click for foreground annotation and right-click for background annotation.
+- If you do not start getting a good mask result after several clicks, it may be better to reset the frame and try again, clicking in different areas.
+- The standard click segmentation model may work better on some anime scenes than the anime model.
 - Use import mask to import a black and white mask that was created in other software.
 - Use Propogate Forward and Backward buttons to propogate masks across the frames. Use full propagation to run it on the entire clip from the beginning.
 - Use Export as Video to save the output to a video file.

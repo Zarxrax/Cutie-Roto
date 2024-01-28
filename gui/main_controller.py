@@ -144,6 +144,14 @@ class MainController():
             
         self.click_ctrl = ClickController(self.cfg.ritm_weights, device=self.device)
 
+    def on_modelselect_change(self):
+        if self.gui.comboBox_modelselect.currentText() == 'Standard':
+            self.click_ctrl = ClickController(self.cfg.ritm_weights, device=self.device)
+            self.gui.text('Standard segmentation model loaded.')
+        else:
+            self.click_ctrl = ClickController(self.cfg.ritm_anime_weights, device=self.device)
+            self.gui.text('Anime segmentation model loaded.')
+
     def hit_number_key(self, number: int):
         if number == self.curr_object:
             return
@@ -580,8 +588,6 @@ class MainController():
             elif self.gui.comboBox_quality.currentText() == 'Ultra':
                 self.gui.long_mem_max.setValue(4000)
                 self.gui.quality_box.setValue(720)
-            print(self.gui.long_mem_max.value())
-            print(self.gui.quality_box.value())
             self.update_config()
 
 
