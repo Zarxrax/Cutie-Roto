@@ -1,10 +1,10 @@
 from os import path
 from PySide6.QtCore import (QMetaObject, QRect, QSize, Qt)
 
-from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout, QWidget, QMessageBox)
 
 from PySide6.QtGui import QIcon
-
+import av
 #import logging
 #from omegaconf import open_dict
 from hydra import compose
@@ -189,12 +189,24 @@ class Launcher_Dialog(object):
         show_in_file_manager(self.cfg['workspace_root'])
     
     def on_clickStart(self):
+        if self.label_workspace_status_text.text() == "Video file not found. Please enter a valid filename.":
+            return
+
         #store filename for resuming next time
         try:
             with open('cutie/config/last.txt', 'w') as file:
                 file.write(self.lineEdit_videofile.text())
         except Exception as e:
             print(f"Error: {e}")
+
+        #check for long video
+        with av.open(self.lineEdit_videofile.text()) as container:
+            total_frames = container.streams.video[0].frames
+            if total_frames > 5000 and self.label_workspace_status_text.text() == "The workspace does not exist. A new workspace will be created.":
+                reply = QMessageBox.question(self, 'Warning', "You have selected a long video. It is recommended to trim the video before importing. Are you sure you want to continue?", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+                if reply == QMessageBox.No:
+                    return
+        
         #Close the dialog and return the filename
         self.accept()  
         self.result = self.lineEdit_videofile.text()
