@@ -445,7 +445,7 @@ class GUI(QWidget):
         ex, ey = self.last_ex, self.last_ey
 
         image_with_point = np.copy(image)
-        cv2.circle(image_with_point, (int(ex), int(ey)), 1, (255, 0, 0), -1)
+        cv2.circle(image_with_point, (int(round(ex)), int(round(ey))), 1, (255, 0, 0), -1)
 
         r = self.controller.zoom_pixels//2
         ex = int(round(max(r, min(self.w - r, ex))))
@@ -552,8 +552,8 @@ class GUI(QWidget):
 
     def on_mouse_motion(self, event):
         ex, ey = self.get_scaled_pos(event.position().x(), event.position().y())
-        self.on_mouse_motion_xy(ex, ey)
         self.last_ex, self.last_ey = ex, ey
+        self.on_mouse_motion_xy(ex, ey)
 
     def on_mouse_release(self, event):
         pass
