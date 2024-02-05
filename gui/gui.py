@@ -200,7 +200,7 @@ class GUI(QWidget):
             1000,
             100000,
             'Max. long-term memory size',
-            step=1000,
+            step=128,
             callback=controller.update_config)
         self.mem_every_box, self.mem_every_box_layout = create_parameter_box(
             1, 100, 'Memory frame every (r)', callback=controller.update_config)

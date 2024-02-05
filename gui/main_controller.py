@@ -521,6 +521,11 @@ class MainController():
             used_by_torch = torch.cuda.max_memory_allocated() / (2**30)
             self.gui.torch_mem_gauge.setFormat(f'{used_by_torch:.1f} GB / {global_total:.1f} GB')
             self.gui.torch_mem_gauge.setValue(round(used_by_torch / global_total * 100 / 1024))
+            #Out of memory
+            if (global_free / global_total) < 0.02:
+                self.gui.text('GPU memory is running low. Clearing non-permanent memory. Consider using a lower processing quality.')
+                self.on_clear_non_permanent_memory()
+                
         elif 'mps' in self.device:
             mem_used = mps.current_allocated_memory() / (2**30)
             self.gui.gpu_mem_gauge.setFormat(f'{mem_used:.1f} GB')
