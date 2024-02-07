@@ -1,5 +1,5 @@
 from os import path
-from PySide6.QtCore import (QMetaObject, QRect, QSize, Qt)
+from PySide6.QtCore import (QMetaObject, QRect, QSize, Qt, Signal)
 
 from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout, QWidget, QMessageBox)
 
@@ -37,13 +37,14 @@ class Launcher_Dialog(object):
 
         self.horizontalLayout_1.addWidget(self.label_video)
 
-        self.lineEdit_videofile = QLineEdit(self.layoutWidget)
+        self.lineEdit_videofile = FileEdit(self.layoutWidget)
         self.lineEdit_videofile.setObjectName(u"lineEdit_videofile")
         sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.lineEdit_videofile.sizePolicy().hasHeightForWidth())
         self.lineEdit_videofile.setSizePolicy(sizePolicy1)
+        self.lineEdit_videofile.setAcceptDrops(True)
         self.lineEdit_videofile.setText(u"")
 
         self.horizontalLayout_1.addWidget(self.lineEdit_videofile)
@@ -138,6 +139,7 @@ class Launcher_Dialog(object):
         self.pushButton_workspaces_folder.clicked.connect(self.on_openWorkspacesFolder)
         self.pushButton_start.clicked.connect(self.on_clickStart)
         self.lineEdit_videofile.editingFinished.connect(self.on_videoFileChanged)
+        self.lineEdit_videofile.videoFileChanged.connect(self.on_videoFileChanged)
         self.lineEdit_workspace_folder.textChanged.connect(self.on_workspaceChanged)
         
         # read data from the config
@@ -189,6 +191,7 @@ class Launcher_Dialog(object):
         show_in_file_manager(self.cfg['workspace_root'])
     
     def on_clickStart(self):
+        self.on_videoFileChanged()
         if self.label_workspace_status_text.text() == "Video file not found. Please enter a valid filename.":
             return
 
@@ -212,4 +215,29 @@ class Launcher_Dialog(object):
         self.result = self.lineEdit_videofile.text()
     
 
-    
+class FileEdit(QLineEdit):
+        videoFileChanged = Signal(str)
+        def __init__( self, parent ):
+            super(FileEdit, self).__init__(parent)
+
+            self.setDragEnabled(True)
+
+        def dragEnterEvent( self, event ):
+            data = event.mimeData()
+            urls = data.urls()
+            if ( urls and urls[0].scheme() == 'file' ):
+                event.acceptProposedAction()
+
+        def dragMoveEvent( self, event ):
+            data = event.mimeData()
+            urls = data.urls()
+            if ( urls and urls[0].scheme() == 'file' ):
+                event.acceptProposedAction()
+
+        def dropEvent( self, event ):
+            data = event.mimeData()
+            urls = data.urls()
+            if ( urls and urls[0].scheme() == 'file' ):
+                filepath = urls[0].toLocalFile()
+                self.setText(filepath)
+                self.videoFileChanged.emit(filepath)
