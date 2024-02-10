@@ -80,7 +80,7 @@ if __name__ in "__main__":
 
     # prepare to start the gui
     app = QApplication(sys.argv)
-    qdarktheme.setup_theme("auto")    
+    qdarktheme.setup_theme(theme="auto", additional_qss="QToolTip { border: 0px; }")    
     
     # if no input specified in args, make a launcher dialog to let the user choose a file to load.
     if not (cfg["video"] or cfg["images"] or cfg["workspace"] ):
