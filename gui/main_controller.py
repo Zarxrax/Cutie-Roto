@@ -225,7 +225,7 @@ class MainController():
 
     def compose_current_im(self):
         self.vis_image = get_visualization(self.vis_mode, self.curr_image_np, self.curr_mask,
-                                           self.overlay_layer, self.vis_target_objects)
+                                           self.overlay_layer, self.gui.bg_color)
 
     def update_canvas(self):
         self.gui.set_canvas(self.vis_image)
@@ -237,8 +237,7 @@ class MainController():
         # fast path, uses gpu. Changes the image in-place to avoid copying
         # thus current_image_torch must be voided afterwards
         self.vis_image = get_visualization_torch(self.vis_mode, self.curr_image_torch,
-                                                 self.curr_prob, self.overlay_layer_torch,
-                                                 self.vis_target_objects)
+                                                 self.curr_prob, self.overlay_layer_torch, self.gui.bg_color)
         self.curr_image_torch = None
         self.vis_image = np.ascontiguousarray(self.vis_image)
         if self.save_visualization:
@@ -655,7 +654,7 @@ class MainController():
         show_in_file_manager(self.res_man.workspace)
 
     def on_import_layer(self):
-        file_name = self.gui.open_file('Layer')
+        file_name = self.gui.open_file('Background Layer')
         if len(file_name) == 0:
             return
 
@@ -671,6 +670,13 @@ class MainController():
             self.show_current_frame()
         except FileNotFoundError:
             self.gui.text(f'{file_name} not found.')
+
+    def on_bg_color(self):
+        self.gui.choose_color()
+        # disable background layer when choosing color
+        self.overlay_layer: np.ndarray = None
+        self.overlay_layer_torch: torch.Tensor = None
+        self.show_current_frame()
 
     def on_save_visualization_toggle(self):
         self.save_visualization = self.gui.save_visualization_checkbox.isChecked()

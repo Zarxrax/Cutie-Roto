@@ -49,58 +49,43 @@ grayscale_weights = np.array([[0.3, 0.59, 0.11]]).astype(np.float32)
 grayscale_weights_torch = torch.from_numpy(grayscale_weights).to(device).unsqueeze(0)
 
 
-def get_visualization(mode: Literal['image', 'mask', 'fade', 'overlay', 'light', 'popup',
-                                    'layer'], image: np.ndarray, mask: np.ndarray,
-                      layer: np.ndarray, target_objects: List[int]) -> np.ndarray:
+def get_visualization(mode: Literal['image', 'mask', 'overlay', 'background'], 
+                      image: np.ndarray, mask: np.ndarray, layer: np.ndarray, color: [0, 255, 0]) -> np.ndarray:
     if mode == 'image':
         return image
     elif mode == 'mask':
         return color_map_np[mask]
-    elif mode == 'fade':
-        return overlay_davis(image, mask, fade=True)
     elif mode == 'overlay':
         return overlay_davis(image, mask)
-    elif mode == 'light':
-        return overlay_davis(image, mask, 0.9)
-    elif mode == 'popup':
-        return overlay_popup(image, mask, target_objects)
-    elif mode == 'layer':
+    elif mode == 'background':
         if layer is None:
-            print('Layer file not given. Defaulting to DAVIS.')
-            return overlay_davis(image, mask)
+            return overlay_bgcolor(image, mask, color)
         else:
-            return overlay_layer(image, mask, layer, target_objects)
+            return overlay_layer(image, mask, layer)
     else:
         raise NotImplementedError
 
 
-def get_visualization_torch(mode: Literal['image', 'mask', 'fade', 'overlay', 'light', 'popup',
-                                          'layer'], image: torch.Tensor, prob: torch.Tensor,
-                            layer: torch.Tensor, target_objects: List[int]) -> np.ndarray:
+def get_visualization_torch(mode: Literal['image', 'mask', 'overlay',
+                                          'background'], image: torch.Tensor, prob: torch.Tensor,
+                            layer: torch.Tensor, color: [0, 255, 0]) -> np.ndarray:
     if mode == 'image':
         return image
     elif mode == 'mask':
         mask = torch.max(prob, dim=0).indices
         return (color_map_torch[mask] * 255).byte().cpu().numpy()
-    elif mode == 'fade':
-        return overlay_davis_torch(image, prob, fade=True)
     elif mode == 'overlay':
         return overlay_davis_torch(image, prob)
-    elif mode == 'light':
-        return overlay_davis_torch(image, prob, 0.9)
-    elif mode == 'popup':
-        return overlay_popup_torch(image, prob, target_objects)
-    elif mode == 'layer':
+    elif mode == 'background':
         if layer is None:
-            print('Layer file not given. Defaulting to DAVIS.')
-            return overlay_davis_torch(image, prob)
+            return overlay_bgcolor_torch(image, prob, color)
         else:
-            return overlay_layer_torch(image, prob, layer, target_objects)
+            return overlay_layer_torch(image, prob, layer)
     else:
         raise NotImplementedError
 
 
-def overlay_davis(image: np.ndarray, mask: np.ndarray, alpha: float = 0.5, fade: bool = False):
+def overlay_davis(image: np.ndarray, mask: np.ndarray, alpha: float = 0.5):
     """ Overlay segmentation on top of RGB image. from davis official"""
     im_overlay = image.copy()
 
@@ -109,39 +94,27 @@ def overlay_davis(image: np.ndarray, mask: np.ndarray, alpha: float = 0.5, fade:
     binary_mask = (mask > 0)
     # Compose image
     im_overlay[binary_mask] = foreground[binary_mask]
-    if fade:
-        im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
     return im_overlay.astype(image.dtype)
 
 
-def overlay_popup(image: np.ndarray, mask: np.ndarray, target_objects: List[int]):
-    # Keep foreground colored. Convert background to grayscale.
-    im_overlay = image.copy()
-
-    binary_mask = ~(np.isin(mask, target_objects))
-    colored_region = (im_overlay[binary_mask] * grayscale_weights).sum(-1, keepdims=-1)
-    im_overlay[binary_mask] = colored_region
-    return im_overlay.astype(image.dtype)
-
-
-def overlay_layer(image: np.ndarray, mask: np.ndarray, layer: np.ndarray,
-                  target_objects: List[int]):
-    # insert a layer between foreground and background
+def overlay_layer(image: np.ndarray, mask: np.ndarray, layer: np.ndarray):
+    # insert a background layer behind foreground
     # The CPU version is less accurate because we are using the hard mask
     # The GPU version has softer edges as it uses soft probabilities
-    obj_mask = (np.isin(mask, target_objects)).astype(np.float32)[:, :, np.newaxis]
-    layer_alpha = layer[:, :, 3].astype(np.float32)[:, :, np.newaxis] / 255
+    mask = mask.astype(np.float32)[:, :, np.newaxis]
     layer_rgb = layer[:, :, :3]
-    background_alpha = (1 - obj_mask) * (1 - layer_alpha)
-    im_overlay = (image * background_alpha + layer_rgb * (1 - obj_mask) * layer_alpha +
-                  image * obj_mask).clip(0, 255)
+    im_overlay = (layer_rgb * (1 - mask) + image * mask).clip(0, 255)
     return im_overlay.astype(image.dtype)
 
+def overlay_bgcolor(image: np.ndarray, mask: np.ndarray, color: [0,255,0]):
+    mask = mask.astype(np.float32)[:, :, np.newaxis]
+    layer_rgb = np.full_like(image, color, dtype=np.uint8)
+    im_overlay = (layer_rgb * (1 - mask) + image * mask).clip(0, 255)
+    return im_overlay.astype(image.dtype)
 
 def overlay_davis_torch(image: torch.Tensor,
                         prob: torch.Tensor,
-                        alpha: float = 0.5,
-                        fade: bool = False):
+                        alpha: float = 0.5):
     """ Overlay segmentation on top of RGB image. from davis official"""
     # Changes the image in-place to avoid copying
     # NOTE: Make sure you no longer use image after calling this function
@@ -154,51 +127,28 @@ def overlay_davis_torch(image: torch.Tensor,
     binary_mask = (mask > 0)
     # Compose image
     im_overlay[binary_mask] = foreground[binary_mask]
-    if fade:
-        im_overlay[~binary_mask] = im_overlay[~binary_mask] * 0.6
 
     im_overlay = (im_overlay * 255).byte().cpu().numpy()
     return im_overlay
 
-
-def overlay_popup_torch(image: torch.Tensor, prob: torch.Tensor, target_objects: List[int]):
-    # Keep foreground colored. Convert background to grayscale.
+def overlay_bgcolor_torch(image: torch.Tensor, prob: torch.Tensor, color: [0,255,0]):
     image = image.permute(1, 2, 0)
-
-    if len(target_objects) == 0:
-        obj_mask = torch.zeros_like(prob[0]).unsqueeze(2)
-    else:
-        # I should not need to convert this to numpy.
-        # Using list works most of the time but consistently fails
-        # if I include first object -> exclude it -> include it again.
-        # I check everywhere and it makes absolutely no sense.
-        # I am blaming this on PyTorch and calling it a day
-        obj_mask = prob[np.array(target_objects, dtype=np.int32)].sum(0).unsqueeze(2)
-    gray_image = (image * grayscale_weights_torch).sum(-1, keepdim=True)
-    im_overlay = obj_mask * image + (1 - obj_mask) * gray_image
-
+    mask = prob[0].unsqueeze(2)
+    color = torch.tensor(color) / 255
+    layer_rgb = color.expand_as(image).to(device)
+    im_overlay = (layer_rgb * mask + image * (1 - mask)).clip(0, 1)
+    
     im_overlay = (im_overlay * 255).byte().cpu().numpy()
     return im_overlay
 
-
-def overlay_layer_torch(image: torch.Tensor, prob: torch.Tensor, layer: torch.Tensor,
-                        target_objects: List[int]):
-    # insert a layer between foreground and background
+def overlay_layer_torch(image: torch.Tensor, prob: torch.Tensor, layer: torch.Tensor):
+    # insert a background layer behind foreground
     # The CPU version is less accurate because we are using the hard mask
     # The GPU version has softer edges as it uses soft probabilities
     image = image.permute(1, 2, 0)
-
-    if len(target_objects) == 0:
-        obj_mask = torch.zeros_like(prob[0]).unsqueeze(2)
-    else:
-        # TODO: figure out why we need to convert this to numpy array
-        obj_mask = prob[np.array(target_objects, dtype=np.int32)].sum(0).unsqueeze(2)
-    layer_alpha = layer[:, :, 3].unsqueeze(2)
+    mask = prob[0].unsqueeze(2)
     layer_rgb = layer[:, :, :3]
-    # background_alpha = torch.maximum(obj_mask, layer_alpha)
-    background_alpha = (1 - obj_mask) * (1 - layer_alpha)
-    im_overlay = (image * background_alpha + layer_rgb * (1 - obj_mask) * layer_alpha +
-                  image * obj_mask).clip(0, 1)
+    im_overlay = (layer_rgb * mask + image * (1 - mask)).clip(0, 1)
 
     im_overlay = (im_overlay * 255).byte().cpu().numpy()
     return im_overlay

@@ -6,9 +6,9 @@ from omegaconf import DictConfig
 
 from PySide6.QtWidgets import (QWidget, QComboBox, QCheckBox, QFrame, QHBoxLayout, QLabel, QPushButton,
                                QTextEdit, QSpinBox, QPlainTextEdit, QVBoxLayout, QSizePolicy,
-                               QButtonGroup, QSlider, QRadioButton, QApplication, QFileDialog)
+                               QButtonGroup, QSlider, QRadioButton, QApplication, QFileDialog, QColorDialog)
 
-from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon, QPainter, QPen)
+from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon, QPainter, QPen, QColor)
 from PySide6.QtCore import Qt, QTimer
 
 from cutie.utils.palette import davis_palette_np
@@ -118,12 +118,11 @@ class GUI(QWidget):
 
         # combobox
         self.combo = QComboBox(self)
+        self.combo.addItem("image")
         self.combo.addItem("mask")
         self.combo.addItem("overlay")
-        self.combo.addItem("image")
-        #self.combo.addItem("light")
-        #self.combo.addItem("popup")
-        #self.combo.addItem("layer")
+        self.combo.addItem("background")
+
         self.combo.setCurrentText('overlay')
         self.combo.currentTextChanged.connect(controller.set_vis_mode)
 
@@ -229,11 +228,17 @@ class GUI(QWidget):
         self.comboBox_modelselect.setCurrentText("Standard")
         self.comboBox_modelselect.currentIndexChanged.connect(controller.on_modelselect_change)
 
-        # import mask/layer
+        # import background layer
+        self.import_layer_button = QPushButton('Import background')
+        self.import_layer_button.clicked.connect(controller.on_import_layer)
+        # bg color
+        self.choose_bg_color_button = QPushButton('Background color')
+        self.choose_bg_color_button.clicked.connect(controller.on_bg_color)
+        self.bg_color = [0, 255, 0]
+
+        # import mask
         self.import_mask_button = QPushButton('Import mask')
         self.import_mask_button.clicked.connect(controller.on_import_mask)
-        #self.import_layer_button = QPushButton('Import layer')
-        #self.import_layer_button.clicked.connect(controller.on_import_layer)
         
         #open workspace
         self.open_workspace_button = QPushButton('Open Workspace')
@@ -358,11 +363,17 @@ class GUI(QWidget):
         #right_area.addLayout(self.mem_every_box_layout)
         #right_area.addLayout(self.quality_box_layout)
 
-        # import mask/layer/workspace
+        # choose background
+        bg_area = QHBoxLayout()
+        bg_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
+        bg_area.addWidget(self.import_layer_button)
+        bg_area.addWidget(self.choose_bg_color_button)
+        right_area.addLayout(bg_area)
+
+        # import mask/workspace
         import_area = QHBoxLayout()
         import_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         import_area.addWidget(self.import_mask_button)
-        #import_area.addWidget(self.import_layer_button)
         import_area.addWidget(self.open_workspace_button)
         right_area.addLayout(import_area)
 
@@ -574,6 +585,13 @@ class GUI(QWidget):
                                                    "Image files (*)",
                                                    options=options)
         return file_name
+    
+    def choose_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            self.bg_color = color.getRgb()[:3]
+        return self.bg_color
+        
 
     def set_object_color(self, object_id: int):
         r, g, b = davis_palette_np[object_id]
