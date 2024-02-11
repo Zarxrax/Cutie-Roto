@@ -11,7 +11,7 @@ vis_endpoint: vis
 amp: True
 weights: weights/cutie-base-mega.pth
 ritm_weights: weights/coco_lvis_h18_itermask.pth
-ritm_anime_weights: weights/aniclick_h18_itermask.pth
+ritm_anime_weights: weights/aniclick_v2_h18_itermask.pth
 
 # All "size" parameters represent the length of the shorter edge
 # maximum internal processing size; reducing this speeds up processing
