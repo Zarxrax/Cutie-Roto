@@ -27,7 +27,7 @@ def index_numpy_to_one_hot_torch(mask: np.ndarray, num_classes: int):
 
 
 """
-Some constants fro visualization
+Some constants for visualization
 """
 try:
     if torch.cuda.is_available():
@@ -50,7 +50,7 @@ grayscale_weights_torch = torch.from_numpy(grayscale_weights).to(device).unsquee
 
 
 def get_visualization(mode: Literal['image', 'mask', 'overlay', 'background'], 
-                      image: np.ndarray, mask: np.ndarray, layer: np.ndarray, color: [0, 255, 0]) -> np.ndarray:
+                      image: np.ndarray, mask: np.ndarray, layer: np.ndarray, color: List[int]) -> np.ndarray:
     if mode == 'image':
         return image
     elif mode == 'mask':
@@ -68,9 +68,10 @@ def get_visualization(mode: Literal['image', 'mask', 'overlay', 'background'],
 
 def get_visualization_torch(mode: Literal['image', 'mask', 'overlay',
                                           'background'], image: torch.Tensor, prob: torch.Tensor,
-                            layer: torch.Tensor, color: [0, 255, 0]) -> np.ndarray:
+                            layer: torch.Tensor, color: List[int]) -> np.ndarray:
     if mode == 'image':
-        return image
+        image = image.permute(1, 2, 0)
+        return (image * 255).byte().cpu().numpy()
     elif mode == 'mask':
         mask = torch.max(prob, dim=0).indices
         return (color_map_torch[mask] * 255).byte().cpu().numpy()
@@ -106,7 +107,7 @@ def overlay_layer(image: np.ndarray, mask: np.ndarray, layer: np.ndarray):
     im_overlay = (layer_rgb * (1 - mask) + image * mask).clip(0, 255)
     return im_overlay.astype(image.dtype)
 
-def overlay_bgcolor(image: np.ndarray, mask: np.ndarray, color: [0,255,0]):
+def overlay_bgcolor(image: np.ndarray, mask: np.ndarray, color: List[int]):
     mask = mask.astype(np.float32)[:, :, np.newaxis]
     layer_rgb = np.full_like(image, color, dtype=np.uint8)
     im_overlay = (layer_rgb * (1 - mask) + image * mask).clip(0, 255)
@@ -131,7 +132,7 @@ def overlay_davis_torch(image: torch.Tensor,
     im_overlay = (im_overlay * 255).byte().cpu().numpy()
     return im_overlay
 
-def overlay_bgcolor_torch(image: torch.Tensor, prob: torch.Tensor, color: [0,255,0]):
+def overlay_bgcolor_torch(image: torch.Tensor, prob: torch.Tensor, color: List[int]):
     image = image.permute(1, 2, 0)
     mask = prob[0].unsqueeze(2)
     color = torch.tensor(color) / 255

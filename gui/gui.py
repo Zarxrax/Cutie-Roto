@@ -4,15 +4,15 @@ import numpy as np
 import cv2
 from omegaconf import DictConfig
 
-from PySide6.QtWidgets import (QWidget, QComboBox, QCheckBox, QFrame, QHBoxLayout, QLabel, QPushButton,
+from PySide6.QtWidgets import (QWidget, QComboBox, QHBoxLayout, QLabel, QPushButton,
                                QTextEdit, QSpinBox, QPlainTextEdit, QVBoxLayout, QSizePolicy,
-                               QButtonGroup, QSlider, QRadioButton, QApplication, QFileDialog, QColorDialog)
+                               QSlider, QApplication, QFileDialog, QColorDialog)
 
-from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon, QPainter, QPen, QColor)
+from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon)
 from PySide6.QtCore import Qt, QTimer
 
 from cutie.utils.palette import davis_palette_np
-from gui.gui_utils import *
+from gui.gui_utils import create_gauge, create_parameter_box, apply_to_all_children_widget
 
 
 class GUI(QWidget):
@@ -43,8 +43,6 @@ class GUI(QWidget):
         self.commit_button.clicked.connect(controller.on_commit)
         self.export_video_button = QPushButton('Export as video')
         self.export_video_button.clicked.connect(controller.on_export_video)
-        #self.export_binary_button = QPushButton('Export binary masks')
-        #self.export_binary_button.clicked.connect(controller.on_export_binary)
 
 
         self.full_run_button = QPushButton('Full Propagate')
@@ -72,17 +70,8 @@ class GUI(QWidget):
         self.backward_one_button.clicked.connect(controller.on_backward_one_propagation)
         self.backward_one_button.setMinimumWidth(50)
 
-        # universal progressbar
-        self.progressbar = QProgressBar()
-        self.progressbar.setMinimum(0)
-        self.progressbar.setMaximum(100)
-        self.progressbar.setValue(0)
-        self.progressbar.setMinimumWidth(200)
-
         self.reset_frame_button = QPushButton('Reset frame')
         self.reset_frame_button.clicked.connect(controller.on_reset_mask)
-        #self.reset_object_button = QPushButton('Reset object')
-        #self.reset_object_button.clicked.connect(controller.on_reset_object)
 
         # set up the LCD
         self.lcd = QTextEdit()
@@ -125,14 +114,6 @@ class GUI(QWidget):
 
         self.combo.setCurrentText('overlay')
         self.combo.currentTextChanged.connect(controller.set_vis_mode)
-
-        #self.save_visualization_checkbox = QCheckBox(self)
-        #self.save_visualization_checkbox.toggled.connect(controller.on_save_visualization_toggle)
-        #self.save_visualization_checkbox.setChecked(False)
-
-        #self.save_soft_mask_checkbox = QCheckBox(self)
-        #self.save_soft_mask_checkbox.toggled.connect(controller.on_save_soft_mask_toggle)
-        #self.save_soft_mask_checkbox.setChecked(False)
 
         # controls for output FPS and bitrate
         self.fps_dial = QSpinBox()
@@ -185,10 +166,8 @@ class GUI(QWidget):
         self.perm_mem_gauge, self.perm_mem_gauge_layout = create_gauge('Permanent memory size')
         self.work_mem_gauge, self.work_mem_gauge_layout = create_gauge('Working memory size')
         self.long_mem_gauge, self.long_mem_gauge_layout = create_gauge('Long-term memory size')
-        self.gpu_mem_gauge, self.gpu_mem_gauge_layout = create_gauge(
-            'GPU memory usage')
-        self.torch_mem_gauge, self.torch_mem_gauge_layout = create_gauge(
-            'GPU mem. (torch, w/o caching)')
+        self.gpu_mem_gauge, self.gpu_mem_gauge_layout = create_gauge('GPU memory usage')
+        self.torch_mem_gauge, self.torch_mem_gauge_layout = create_gauge('GPU mem. (torch, w/o caching)')
 
         # Parameters setting
         self.work_mem_min, self.work_mem_min_layout = create_parameter_box(
@@ -269,11 +248,6 @@ class GUI(QWidget):
         interact_topbox.addWidget(self.play_button)
         interact_topbox.addWidget(self.reset_frame_button)
         interact_topbox.addWidget(self.commit_button)
-        #interact_topbox.addWidget(self.reset_object_button)
-        #interact_botbox.addWidget(QLabel('Current object ID:'))
-        #interact_botbox.addWidget(self.object_dial)
-        #interact_botbox.addWidget(self.object_color)
-        #interact_botbox.addWidget(self.frame_name)
         interact_subbox.addLayout(interact_topbox)
         interact_subbox.addLayout(interact_botbox)
         interact_botbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -290,18 +264,9 @@ class GUI(QWidget):
         overlay_botbox = QHBoxLayout()
         overlay_topbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
         overlay_botbox.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        overlay_topbox.addWidget(QLabel('Overlay mode'))
+        overlay_topbox.addWidget(QLabel('Preview mode'))
         overlay_topbox.addWidget(self.combo)
-        #overlay_topbox.addWidget(QLabel('Save soft mask during propagation'))
-        #overlay_topbox.addWidget(self.save_soft_mask_checkbox)
-        #overlay_topbox.addWidget(self.export_binary_button)
-        #overlay_botbox.addWidget(QLabel('Save overlay'))
-        #overlay_botbox.addWidget(self.save_visualization_checkbox)
         overlay_topbox.addWidget(self.export_video_button)
-        #overlay_botbox.addWidget(QLabel('Output FPS: '))
-        #overlay_botbox.addWidget(self.fps_dial)
-        #overlay_botbox.addWidget(QLabel('Output bitrate (Mbps): '))
-        #overlay_botbox.addWidget(self.bitrate_dial)
         overlay_subbox.addLayout(overlay_topbox)
         overlay_subbox.addLayout(overlay_botbox)
         navi.addLayout(overlay_subbox)
@@ -317,7 +282,6 @@ class GUI(QWidget):
         control_topbox.addWidget(self.backward_one_button)
         control_topbox.addWidget(self.forward_one_button)
         control_topbox.addWidget(self.forward_run_button)
-        #control_botbox.addWidget(self.progressbar)
         control_subbox.addLayout(control_topbox)
         control_subbox.addLayout(control_botbox)
         navi.addLayout(control_subbox)
@@ -351,17 +315,11 @@ class GUI(QWidget):
         right_area.addLayout(self.work_mem_gauge_layout)
         right_area.addLayout(self.long_mem_gauge_layout)
         right_area.addLayout(self.gpu_mem_gauge_layout)
-        #right_area.addLayout(self.torch_mem_gauge_layout)
         clearmem_area = QHBoxLayout()
         clearmem_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         clearmem_area.addWidget(self.clear_non_perm_mem_button)
         clearmem_area.addWidget(self.clear_all_mem_button)
         right_area.addLayout(clearmem_area)
-        #right_area.addLayout(self.work_mem_min_layout)
-        #right_area.addLayout(self.work_mem_max_layout)
-        #right_area.addLayout(self.long_mem_max_layout)
-        #right_area.addLayout(self.mem_every_box_layout)
-        #right_area.addLayout(self.quality_box_layout)
 
         # choose background
         bg_area = QHBoxLayout()

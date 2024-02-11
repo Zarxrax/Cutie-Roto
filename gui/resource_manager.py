@@ -220,13 +220,6 @@ class ResourceManager:
         self.invalidate(ti)
         self.add_to_queue_with_warning(SaveItem('mask', mask, self.names[ti]))
 
-    def save_visualization(self, ti: int, vis_mode: str, image: np.ndarray):
-        # image should be uint8 3*H*W
-        assert 0 <= ti < self.length
-        assert isinstance(image, np.ndarray)
-
-        self.add_to_queue_with_warning(SaveItem(f'visualization_{vis_mode}', image, self.names[ti]))
-
     def save_soft_mask(self, ti: int, prob: np.ndarray):
         # mask should be float (num_objects+1)*H*W np array
         assert 0 <= ti < self.length

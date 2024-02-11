@@ -1,11 +1,6 @@
-import os
 from os import path
 import logging
 from typing import Literal
-
-import cv2
-# fix conflicts between qt5 and cv2
-#os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
 import torch
 try:
@@ -23,8 +18,8 @@ from gui.exporter_gui import Export_Dialog
 from cutie.model.cutie import CUTIE
 from cutie.inference.inference_core import InferenceCore
 
-from gui.interaction import *
-from gui.interactive_utils import *
+from gui.interaction import ClickInteraction, Interaction
+from gui.interactive_utils import torch_prob_to_numpy_mask, index_numpy_to_one_hot_torch, get_visualization, get_visualization_torch
 from gui.resource_manager import ResourceManager
 from gui.gui import GUI
 from gui.click_controller import ClickController
@@ -95,7 +90,6 @@ class MainController():
         # visualization info
         self.vis_mode: str = 'overlay'
         self.vis_image: np.ndarray = None
-        self.save_visualization: bool = False
         self.save_soft_mask: bool = True
 
         self.interacted_prob: torch.Tensor = None
@@ -231,7 +225,8 @@ class MainController():
         self.gui.set_canvas(self.vis_image)
 
     def update_minimap(self):
-        self.gui.set_minimap(self.vis_image)
+        if not self.propagating:
+            self.gui.set_minimap(self.vis_image)
 
     def update_current_image_fast(self):
         # fast path, uses gpu. Changes the image in-place to avoid copying
@@ -240,8 +235,6 @@ class MainController():
                                                  self.curr_prob, self.overlay_layer_torch, self.gui.bg_color)
         self.curr_image_torch = None
         self.vis_image = np.ascontiguousarray(self.vis_image)
-        if self.save_visualization:
-            self.res_man.save_visualization(self.curr_ti, self.vis_mode, self.vis_image)
         if self.save_soft_mask:
             self.res_man.save_soft_mask(self.curr_ti, self.curr_prob.cpu().numpy())
         self.gui.set_canvas(self.vis_image)
@@ -252,8 +245,6 @@ class MainController():
             self.update_current_image_fast()
         else:
             self.compose_current_im()
-            if self.save_visualization:
-                self.res_man.save_visualization(self.curr_ti, self.vis_mode, self.vis_image)
             self.update_canvas()
             self.update_minimap()
 
@@ -413,45 +404,9 @@ class MainController():
             self.curr_ti = 0
         self.gui.tl_slider.setValue(self.curr_ti)
 
-    def on_export_visualization(self):
-        # NOTE: Save visualization at the end of propagation
-        image_folder = path.join(self.cfg['workspace'], 'visualization', self.vis_mode)
-        save_folder = self.cfg['workspace']
-        if path.exists(image_folder):
-            # Sorted so frames will be in order
-            output_path = path.join(save_folder, f'visualization_{self.vis_mode}.mp4')
-            self.gui.text(f'Exporting visualization -- please wait')
-            self.gui.process_events()
-            convert_frames_to_video(image_folder,
-                                    output_path,
-                                    fps=self.output_fps,
-                                    bitrate=self.output_bitrate,
-                                    progress_callback=self.gui.progressbar_update)
-            self.gui.text(f'Visualization exported to {output_path}')
-            self.gui.progressbar_update(0)
-        else:
-            self.gui.text(f'No visualization images found in {image_folder}')
-
     def on_export_video(self):
         export_dialog = Dialog(None, cfg=self.cfg)
         export_dialog.exec()
-
-    def on_export_binary(self):
-        # export masks in binary format for other applications, e.g., ProPainter
-        mask_folder = path.join(self.cfg['workspace'], 'masks')
-        save_folder = path.join(self.cfg['workspace'], 'binary_masks')
-        if path.exists(mask_folder):
-            os.makedirs(save_folder, exist_ok=True)
-            self.gui.text(f'Exporting binary masks -- please wait')
-            self.gui.process_events()
-            convert_mask_to_binary(mask_folder,
-                                   save_folder,
-                                   self.vis_target_objects,
-                                   progress_callback=self.gui.progressbar_update)
-            self.gui.text(f'Binary masks exported to {save_folder}')
-            self.gui.progressbar_update(0)
-        else:
-            self.gui.text(f'No masks found in {mask_folder}')
 
     def on_object_dial_change(self):
         object_id = self.gui.object_dial.value()
@@ -558,7 +513,7 @@ class MainController():
             self.gui.long_mem_gauge.setFormat(f'{curr_long_tokens} / {max_long_tokens}')
             self.gui.long_mem_gauge.setValue(round(curr_long_tokens / max_long_tokens * 100))
 
-        except AttributeError as e:
+        except AttributeError:
             self.gui.work_mem_gauge.setFormat('Unknown')
             self.gui.long_mem_gauge.setFormat('Unknown')
             self.gui.work_mem_gauge.setValue(0)
@@ -677,9 +632,6 @@ class MainController():
         self.overlay_layer: np.ndarray = None
         self.overlay_layer_torch: torch.Tensor = None
         self.show_current_frame()
-
-    def on_save_visualization_toggle(self):
-        self.save_visualization = self.gui.save_visualization_checkbox.isChecked()
 
     def on_save_soft_mask_toggle(self):
         self.save_soft_mask = self.gui.save_soft_mask_checkbox.isChecked()
