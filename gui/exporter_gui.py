@@ -252,16 +252,16 @@ class Export_Dialog(object):
         
         self.exporting = True
         self.pushButton_Export.setText("Cancel")
-        #makedirs(path.join(self.cfg['workspace'], 'binary_masks'), exist_ok=True)
-        #self.progressBar.setFormat('Generating Binary Masks... %p%')
-        #self.convert_mask_to_binary(path.join(self.cfg['workspace'], 'masks'), output_folder, self.progressbar_update)
         
         if self.checkbox_refine.isChecked():
             self.progressBar.setFormat('Refining Masks... %p%')
             self.refine_masks(path.join(self.cfg['workspace'], 'masks'), path.join(self.cfg['workspace'], 'soft_masks'), output_folder, self.progressbar_update)
 
         if self.comboBox_Type.currentText() == "Matte":
-            image_folder = path.join(self.cfg['workspace'], 'masks')
+            if self.checkbox_refine.isChecked():
+                image_folder = path.join(self.cfg['workspace'], 'refined_masks')
+            else: 
+                image_folder = path.join(self.cfg['workspace'], 'masks')
         else:
             self.progressBar.setFormat('Generating Composite Images... %p%')
             image_folder = path.join(self.cfg['workspace'], 'images')
