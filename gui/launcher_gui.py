@@ -1,7 +1,8 @@
 from os import path
+from shutil import rmtree
 from PySide6.QtCore import (QMetaObject, QRect, QSize, Qt, Signal)
 
-from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout, QWidget, QMessageBox)
+from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit, QCheckBox, QPushButton, QFileDialog, QSizePolicy, QVBoxLayout, QWidget, QMessageBox)
 
 from PySide6.QtGui import QIcon
 import av
@@ -112,24 +113,33 @@ class Launcher_Dialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.checkBox_reset = QCheckBox(self.layoutWidget)
+        self.checkBox_reset.setObjectName(u"checkBox_reset")
+        self.checkBox_reset.setText(u"Reset workspace and reload video")
+        self.horizontalLayout_4.addWidget(self.checkBox_reset)
+        self.verticalLayout.addLayout(self.horizontalLayout_4)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.pushButton_workspaces_folder = QPushButton(self.layoutWidget)
         self.pushButton_workspaces_folder.setObjectName(u"pushButton_workspaces_folder")
         self.pushButton_workspaces_folder.setText(u"Open Workspaces Folder")
 
-        self.horizontalLayout_4.addWidget(self.pushButton_workspaces_folder)
+        self.horizontalLayout_5.addWidget(self.pushButton_workspaces_folder)
 
         self.pushButton_start = QPushButton(self.layoutWidget)
         self.pushButton_start.setObjectName(u"pushButton_start")
         self.pushButton_start.setText(u"Start")
 
-        self.horizontalLayout_4.addWidget(self.pushButton_start)
+        self.horizontalLayout_5.addWidget(self.pushButton_start)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayout_4)
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
 
         QWidget.setTabOrder(self.lineEdit_videofile, self.pushButton_videofile)
         QWidget.setTabOrder(self.pushButton_videofile, self.lineEdit_workspace_folder)
-        QWidget.setTabOrder(self.lineEdit_workspace_folder, self.pushButton_workspaces_folder)
+        QWidget.setTabOrder(self.lineEdit_workspace_folder, self.checkBox_reset)
+        QWidget.setTabOrder(self.checkBox_reset, self.pushButton_workspaces_folder)
         QWidget.setTabOrder(self.pushButton_workspaces_folder, self.pushButton_start)
         
         #signals
@@ -206,6 +216,18 @@ class Launcher_Dialog(object):
                 if reply == QMessageBox.No:
                     return
         
+        #delete workspace if reset is checked
+        if self.checkBox_reset.isChecked() and self.label_workspace_status_text.text() == "Workspace exists from a previous session.":
+            workspace = self.lineEdit_workspace_folder.text()
+            reply = QMessageBox.question(self, 'Warning', "All files in the workspace will be deleted. Are you sure you want to continue?", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            if reply == QMessageBox.No:
+                return
+            else:
+                try:
+                    rmtree(workspace)
+                except Exception as e:
+                    print(f"Error: {e}")
+
         #Close the dialog and return the filename
         self.accept()  
         self.result = self.lineEdit_videofile.text()
