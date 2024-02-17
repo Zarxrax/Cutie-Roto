@@ -227,6 +227,8 @@ class Export_Dialog(object):
         self.exporting = False
         QMetaObject.connectSlotsByName(Dialog)
 
+        self.load_from_cfg()
+
 
     def on_selectOutputFolder(self):
         folder_name = QFileDialog.getExistingDirectory(None,
@@ -467,3 +469,17 @@ class Export_Dialog(object):
         else:
             self.exporting = False
             self.pushButton_Export.setText("Export")
+
+    def load_from_cfg(self):
+        if self.cfg['output_type'] is not None:
+            self.comboBox_Type.setCurrentIndex(self.cfg['output_type'])
+        if self.cfg['output_codec'] is not None:
+            self.comboBox_Codec.setCurrentIndex(self.cfg['output_codec'])
+        if self.cfg['output_ext'] is not None:
+            self.comboBox_Ext.setCurrentIndex(self.cfg['output_ext'])
+        if self.cfg['output_fps'] is not None:
+            self.comboBox_FPS.setCurrentText(str(self.cfg['output_fps']))
+        if self.cfg['output_quantizer'] is not None:
+            self.spinBox_Quantizer.setValue(self.cfg['output_quantizer'])
+        if self.cfg['output_refine'] is True:
+            self.checkbox_refine.setChecked(True)

@@ -114,10 +114,6 @@ class MainController():
             self.gui.long_mem_max.setValue(self.processor.memory.max_long_tokens)
         self.gui.mem_every_box.setValue(self.processor.mem_every)
 
-        # for exporting videos
-        self.output_fps = cfg['output_fps']
-        self.output_bitrate = cfg['output_bitrate']
-
         # set callbacks
         self.gui.on_mouse_motion_xy = self.on_mouse_motion_xy
         self.gui.click_fn = self.click_fn

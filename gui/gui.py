@@ -115,22 +115,6 @@ class GUI(QWidget):
         self.combo.setCurrentText('overlay')
         self.combo.currentTextChanged.connect(controller.set_vis_mode)
 
-        # controls for output FPS and bitrate
-        self.fps_dial = QSpinBox()
-        self.fps_dial.setReadOnly(False)
-        self.fps_dial.setMinimumSize(40, 30)
-        self.fps_dial.setMinimum(1)
-        self.fps_dial.setMaximum(60)
-        self.fps_dial.setValue(cfg['output_fps'])
-        self.fps_dial.editingFinished.connect(controller.on_fps_dial_change)
-
-        self.bitrate_dial = QSpinBox()
-        self.bitrate_dial.setReadOnly(False)
-        self.bitrate_dial.setMinimumSize(40, 30)
-        self.bitrate_dial.setMinimum(1)
-        self.bitrate_dial.setMaximum(100)
-        self.bitrate_dial.setValue(cfg['output_bitrate'])
-        self.bitrate_dial.editingFinished.connect(controller.on_bitrate_dial_change)
 
         # Main canvas -> QLabel
         self.main_canvas = QLabel()
