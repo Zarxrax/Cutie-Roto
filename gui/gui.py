@@ -213,14 +213,6 @@ class GUI(QWidget):
         self.console.setMinimumHeight(100)
         self.console.setMaximumHeight(100)
 
-        # Tips for the users
-        self.tips = QTextEdit()
-        self.tips.setReadOnly(True)
-        self.tips.setTextInteractionFlags(Qt.NoTextInteraction)
-        self.tips.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        with open('./gui/TIPS.md') as f:
-            self.tips.setMarkdown(f.read())
-
         # navigator
         navi = QHBoxLayout()
 
@@ -279,10 +271,17 @@ class GUI(QWidget):
         right_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         
         
-        # Minimap area
-        mini_label = QLabel('Minimap')
-        mini_label.setAlignment(Qt.AlignTop)
-        right_area.addWidget(mini_label)
+        # links
+        links_area = QHBoxLayout()
+        github_label = QLabel('<a href="https://github.com/Zarxrax/Cutie-Roto">Open Github Page</a>')
+        github_label.setOpenExternalLinks(True)
+        github_label.setAlignment(Qt.AlignLeft)
+        wiki_label = QLabel('<a href="https://github.com/Zarxrax/Cutie-Roto/wiki">Open Documentation</a>')
+        wiki_label.setOpenExternalLinks(True)
+        wiki_label.setAlignment(Qt.AlignRight)
+        links_area.addWidget(github_label)
+        links_area.addWidget(wiki_label)
+        right_area.addLayout(links_area)
 
         # Minimap zooming
         minimap_ctrl = QHBoxLayout()
@@ -291,8 +290,8 @@ class GUI(QWidget):
         minimap_ctrl.addWidget(self.zoom_p_button)
         right_area.addLayout(minimap_ctrl)
         right_area.addWidget(self.minimap)
-        right_area.addWidget(self.tips)
         #right_area.addStretch(1)
+
 
         # Parameters
         right_area.addLayout(self.perm_mem_gauge_layout)
