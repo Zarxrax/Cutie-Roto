@@ -4,9 +4,6 @@ defaults:
 
 # workspace configuration
 workspace_root: ./workspace
-image_endpoint: images
-mask_endpoint: masks
-vis_endpoint: vis
 
 amp: True
 weights: weights/cutie-base-mega.pth

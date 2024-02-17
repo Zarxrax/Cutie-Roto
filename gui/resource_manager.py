@@ -68,7 +68,7 @@ class ResourceManager:
             else:
                 raise NotImplementedError('Either images, video, or workspace has to be specified')
 
-            self.workspace = path.join('./workspace', basename)
+            self.workspace = path.join(self.workspace, basename)
 
         print(f'Workspace is in: {self.workspace}')
         with open_dict(cfg):

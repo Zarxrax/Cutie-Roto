@@ -108,9 +108,10 @@ class MainController():
         # initialize stuff
         self.update_memory_gauges()
         self.update_gpu_gauges()
-        self.gui.work_mem_min.setValue(self.processor.memory.min_mem_frames)
-        self.gui.work_mem_max.setValue(self.processor.memory.max_mem_frames)
-        self.gui.long_mem_max.setValue(self.processor.memory.max_long_tokens)
+        if cfg['use_long_term']:
+            self.gui.work_mem_min.setValue(self.processor.memory.min_mem_frames)
+            self.gui.work_mem_max.setValue(self.processor.memory.max_mem_frames)
+            self.gui.long_mem_max.setValue(self.processor.memory.max_long_tokens)
         self.gui.mem_every_box.setValue(self.processor.mem_every)
 
         # for exporting videos
