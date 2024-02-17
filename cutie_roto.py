@@ -5,9 +5,6 @@ if 'QT_QPA_PLATFORM_PLUGIN_PATH' not in os.environ:
     os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = ''
 
 import signal
-
-signal.signal(signal.SIGINT, signal.SIG_DFL)
-
 from argparse import ArgumentParser
 
 try:
@@ -24,10 +21,14 @@ import qdarktheme
 from gui.main_controller import MainController
 from gui.launcher_gui import Launcher_Dialog
 
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
 class Dialog(QDialog, Launcher_Dialog):
     def __init__(self):
         super().__init__()
-        self.setupUi(self)
+        self.cfg = cfg
+        self.setupUi(self, self.cfg)
+
 
 def get_arguments():
     parser = ArgumentParser()

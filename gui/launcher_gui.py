@@ -5,13 +5,11 @@ from PySide6.QtWidgets import (QHBoxLayout, QLabel, QLineEdit, QPushButton, QFil
 
 from PySide6.QtGui import QIcon
 import av
-#import logging
-#from omegaconf import open_dict
-from hydra import compose
+from omegaconf import DictConfig
 from showinfm import show_in_file_manager
 
 class Launcher_Dialog(object):
-    def setupUi(self, Dialog):
+    def setupUi(self, Dialog, cfg: DictConfig):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
         Dialog.setWindowModality(Qt.ApplicationModal)
@@ -142,8 +140,6 @@ class Launcher_Dialog(object):
         self.lineEdit_videofile.videoFileChanged.connect(self.on_videoFileChanged)
         self.lineEdit_workspace_folder.textChanged.connect(self.on_workspaceChanged)
         
-        # read data from the config
-        self.cfg = compose(config_name="gui_config")
         
         #set initial filename from the file last.txt
         try:
