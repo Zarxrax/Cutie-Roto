@@ -122,6 +122,9 @@ class MainController():
         self.gui.text('Initialized.')
         self.initialized = True
 
+        # set the quality per the config
+        self.on_quality_change()
+
         # try to load the default overlay
         #self._try_load_layer('./docs/uiuc.png')
         #self.gui.set_object_color(self.curr_object)
@@ -132,15 +135,17 @@ class MainController():
         self.cutie = CUTIE(self.cfg).eval().to(self.device)
         model_weights = torch.load(self.cfg.weights, map_location=self.device)
         self.cutie.load_weights(model_weights)
-            
-        self.click_ctrl = ClickController(self.cfg.ritm_weights, device=self.device)
+        if self.cfg.ritm_use_anime is True:
+            self.click_ctrl = ClickController(self.cfg.ritm_anime_weights, self.cfg.ritm_max_size, self.cfg.ritm_zoom_size, self.cfg.ritm_expansion_ratio, device=self.device)
+        else:
+            self.click_ctrl = ClickController(self.cfg.ritm_weights, self.cfg.ritm_max_size, self.cfg.ritm_zoom_size, self.cfg.ritm_expansion_ratio, device=self.device)
 
     def on_modelselect_change(self):
         if self.gui.comboBox_modelselect.currentText() == 'Standard':
-            self.click_ctrl = ClickController(self.cfg.ritm_weights, device=self.device)
+            self.click_ctrl = ClickController(self.cfg.ritm_weights, self.cfg.ritm_max_size, self.cfg.ritm_zoom_size, self.cfg.ritm_expansion_ratio, device=self.device)
             self.gui.text('Standard segmentation model loaded.')
         else:
-            self.click_ctrl = ClickController(self.cfg.ritm_anime_weights, device=self.device)
+            self.click_ctrl = ClickController(self.cfg.ritm_anime_weights, self.cfg.ritm_max_size, self.cfg.ritm_zoom_size, self.cfg.ritm_expansion_ratio, device=self.device)
             self.gui.text('Anime segmentation model loaded.')
 
     def hit_number_key(self, number: int):
@@ -533,17 +538,17 @@ class MainController():
     def on_quality_change(self):
         if self.initialized:
             if self.gui.comboBox_quality.currentText() == 'Low':
-                self.gui.long_mem_max.setValue(3000)
-                self.gui.quality_box.setValue(400)
+                self.gui.long_mem_max.setValue(self.cfg.LowQuality.max_num_tokens)
+                self.gui.quality_box.setValue(self.cfg.LowQuality.max_internal_size)
             elif self.gui.comboBox_quality.currentText() == 'Normal':
-                self.gui.long_mem_max.setValue(4000)
-                self.gui.quality_box.setValue(480)
+                self.gui.long_mem_max.setValue(self.cfg.NormalQuality.max_num_tokens)
+                self.gui.quality_box.setValue(self.cfg.NormalQuality.max_internal_size)
             elif self.gui.comboBox_quality.currentText() == 'High':
-                self.gui.long_mem_max.setValue(4000)
-                self.gui.quality_box.setValue(540)
+                self.gui.long_mem_max.setValue(self.cfg.HighQuality.max_num_tokens)
+                self.gui.quality_box.setValue(self.cfg.HighQuality.max_internal_size)
             elif self.gui.comboBox_quality.currentText() == 'Ultra':
-                self.gui.long_mem_max.setValue(4000)
-                self.gui.quality_box.setValue(720)
+                self.gui.long_mem_max.setValue(self.cfg.UltraQuality.max_num_tokens)
+                self.gui.quality_box.setValue(self.cfg.UltraQuality.max_internal_size)
             self.update_config()
 
 

@@ -178,7 +178,14 @@ class GUI(QWidget):
         self.comboBox_quality.addItem(u"High")
         self.comboBox_quality.addItem(u"Ultra")        
         self.comboBox_quality.setObjectName(u"comboBox_quality")
-        self.comboBox_quality.setCurrentText("Normal")
+        if cfg.default_quality == "LowQuality":
+            self.comboBox_quality.setCurrentText("Low")
+        elif cfg.default_quality == "HighQuality":
+            self.comboBox_quality.setCurrentText("High")
+        elif cfg.default_quality == "UltraQuality":
+            self.comboBox_quality.setCurrentText("Ultra")
+        else:
+            self.comboBox_quality.setCurrentText("Normal")
         self.comboBox_quality.currentIndexChanged.connect(controller.on_quality_change)
 
         self.modelselect_label = QLabel(u"Click Segmentation Model")
@@ -188,7 +195,10 @@ class GUI(QWidget):
         self.comboBox_modelselect.setObjectName(u"comboBox_modelselect")
         self.comboBox_modelselect.addItem(u"Standard")
         self.comboBox_modelselect.addItem(u"Anime")
-        self.comboBox_modelselect.setCurrentText("Standard")
+        if cfg.ritm_use_anime is True:
+            self.comboBox_modelselect.setCurrentText("Anime")
+        else:
+            self.comboBox_modelselect.setCurrentText("Standard")
         self.comboBox_modelselect.currentIndexChanged.connect(controller.on_modelselect_change)
 
         # import background layer
@@ -325,7 +335,7 @@ class GUI(QWidget):
         quality_area.addWidget(self.comboBox_quality)
         right_area.addLayout(quality_area)
 
-        #quality combobox
+        #model combobox
         modelselect_area = QHBoxLayout()
         modelselect_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         modelselect_area.addWidget(self.modelselect_label)

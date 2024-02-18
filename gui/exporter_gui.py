@@ -388,6 +388,10 @@ class Export_Dialog(object):
         self.progressbar_update(1.0)
 
     def refine_masks(self, mask_folder: str, soft_mask_folder: str, output_path: str, progress_callback=None) -> None:
+        erode_radius = self.cfg['erode_radius']
+        erode_blur = self.cfg['erode_blur']
+        dilate_radius = self.cfg['dilate_radius']
+        dilate_blur = self.cfg['dilate_blur']
         refined_mask_path = path.join(output_path, 'refined_masks')
         masks = [img for img in sorted(listdir(mask_folder)) if img.endswith(".png")]
         soft_masks = [img for img in sorted(listdir(soft_mask_folder)) if img.endswith(".png")]
@@ -402,10 +406,10 @@ class Export_Dialog(object):
             smsk = cv2.imread(soft_path, cv2.IMREAD_GRAYSCALE)
 
             #refine mask
-            bmsk_erosion = cv2.erode(bmsk, None, iterations=3) 
-            bmsk_dilation = cv2.dilate(bmsk, None, iterations=2) 
-            bmsk_erosion = cv2.GaussianBlur(bmsk_erosion, (5, 5), 0)
-            bmsk_dilation = cv2.GaussianBlur(bmsk_dilation, (5, 5), 0)
+            bmsk_erosion = cv2.erode(bmsk, None, iterations=erode_radius) 
+            bmsk_dilation = cv2.dilate(bmsk, None, iterations=dilate_radius) 
+            bmsk_erosion = cv2.GaussianBlur(bmsk_erosion, (erode_blur, erode_blur), 0)
+            bmsk_dilation = cv2.GaussianBlur(bmsk_dilation, (dilate_blur, dilate_blur), 0)
             add_mask = cv2.add(smsk, bmsk_erosion)
             sub_mask = cv2.subtract(smsk, bmsk_dilation)
             refined_mask = cv2.subtract(add_mask, sub_mask)

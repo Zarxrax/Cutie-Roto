@@ -2,21 +2,28 @@ defaults:
   - _self_
   - model: base
 
-# workspace configuration
+# workspace path
 workspace_root: ./workspace
 
+force_cpu: False
 amp: True
 weights: weights/cutie-base-mega.pth
+
+# RITM interactive segmentation settings
+# All "size" parameters represent the length of the longer edge
 ritm_weights: weights/coco_lvis_h18_itermask.pth
 ritm_anime_weights: weights/aniclick_v2_h18_itermask.pth
+ritm_max_size: 960
+ritm_zoom_size: 512
+ritm_expansion_ratio: 1.4
+ritm_use_anime: False
 
-# All "size" parameters represent the length of the shorter edge
 # maximum internal processing size; reducing this speeds up processing
+# "size" parameters represent the length of the shorter edge
 max_internal_size: 480
 
 # maximum size for extracting frames; the output will also be in this size
-# reducing this mainly speed up I/O
-# it should not be smaller than the internal size
+# reducing this mainly speed up I/O, it should not be smaller than the internal size
 max_overall_size: 2160
 buffer_size: 20
 
@@ -34,6 +41,12 @@ output_ext: 0
 output_fps: 23.976
 output_quantizer: 14
 output_refine: False
+
+# refine edges settings. Blur must be an odd number.
+erode_radius: 1
+erode_blur: 3
+dilate_radius: 1
+dilate_blur: 3
 
 # memory settings
 use_long_term: True
@@ -54,5 +67,22 @@ long_term:
   max_num_tokens: 4000
   buffer_tokens: 2000
 
+# settings for processing quality options. each one can change the max_internal_size and the max_num_tokens
+default_quality: NormalQuality
+
+LowQuality:
+  max_internal_size: 400
+  max_num_tokens: 3000
+NormalQuality:
+  max_internal_size: 480
+  max_num_tokens: 4000
+HighQuality:
+  max_internal_size: 540
+  max_num_tokens: 4000
+UltraQuality:
+  max_internal_size: 720
+  max_num_tokens: 4000
+
+# not sure what these are
 save_aux: False
 flip_aug: False

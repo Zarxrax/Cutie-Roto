@@ -4,14 +4,15 @@ from .ritm.inference import utils
 
 
 class ClickController:
-    def __init__(self, checkpoint_path: str, device: str = 'cuda', max_size: int = 960):
+    def __init__(self, checkpoint_path: str, max_size: int = 960, zoom_size: int = 512, expansion_ratio: float = 1.4, device: str = 'cuda'):
+
         model = utils.load_is_model(checkpoint_path, device, cpu_dist_maps=True)
 
         # Predictor params
         zoomin_params = {
             'skip_clicks': 1,
-            'target_size': 512,
-            'expansion_ratio': 1.4,
+            'target_size': zoom_size,
+            'expansion_ratio': expansion_ratio,
         }
 
         predictor_params = {
