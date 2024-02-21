@@ -479,8 +479,10 @@ class MainController():
             self.gui.torch_mem_gauge.setValue(round(used_by_torch / global_total * 100 / 1024))
             #Out of memory
             if (global_free / global_total) < 0.02:
-                self.gui.text('GPU memory is running low. Clearing non-permanent memory. Consider using a lower processing quality.')
-                self.on_clear_non_permanent_memory()
+                self.gui.text(f't={self.curr_ti}: GPU memory is low. Clearing torch cache.')
+                #self.on_clear_non_permanent_memory()
+                torch.cuda.empty_cache() #just clear cache instead of whole memory
+                
                 
         elif 'mps' in self.device:
             mem_used = mps.current_allocated_memory() / (2**30)
@@ -500,7 +502,7 @@ class MainController():
     def update_memory_gauges(self):
         try:
             curr_perm_tokens = self.processor.memory.work_mem.perm_size(0)
-            self.gui.perm_mem_gauge.setFormat(f'{curr_perm_tokens} / {curr_perm_tokens}')
+            self.gui.perm_mem_gauge.setFormat(f'{curr_perm_tokens}')
             self.gui.perm_mem_gauge.setValue(100)
 
             max_work_tokens = self.processor.memory.max_work_tokens
@@ -605,7 +607,8 @@ class MainController():
             self.curr_mask = mask
             self.show_current_frame()
             self.save_current_mask()
-            self.on_commit()
+            self.res_man.save_queue.join() #wait for save to finish
+            self.on_commit() #commit mask to permanent memory
 
     def on_open_workspace(self):
         show_in_file_manager(self.res_man.workspace)
