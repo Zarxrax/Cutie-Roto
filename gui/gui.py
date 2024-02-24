@@ -92,9 +92,9 @@ class GUI(QWidget):
         self.object_color.setMinimumSize(100, 30)
         self.object_color.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.frame_name = QLabel()
-        self.frame_name.setMinimumSize(100, 30)
-        self.frame_name.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        #self.frame_name = QLabel()
+        #self.frame_name.setMinimumSize(100, 30)
+        #self.frame_name.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         # timeline slider
         self.tl_slider = QSlider(Qt.Orientation.Horizontal)

@@ -125,8 +125,9 @@ class MainController():
         # set the quality per the config
         self.on_quality_change()
 
-        # try to load the default overlay
-        #self._try_load_layer('./docs/uiuc.png')
+        # try to load the default background layer
+        if cfg.background_path is not None:
+            self._try_load_layer(cfg.background_path)
         #self.gui.set_object_color(self.curr_object)
         #self.update_config()
 
@@ -251,7 +252,7 @@ class MainController():
             self.update_minimap()
 
         self.gui.update_slider(self.curr_ti)
-        self.gui.frame_name.setText(self.res_man.names[self.curr_ti] + '.jpg')
+        #self.gui.frame_name.setText(self.res_man.names[self.curr_ti] + '.jpg')
 
     def set_vis_mode(self):
         self.vis_mode = self.gui.combo.currentText()

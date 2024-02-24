@@ -58,6 +58,10 @@ class ResourceManager:
         self.workspace = cfg['workspace']
         self.max_size = cfg['max_overall_size']
         self.palette = basic_palette
+        if cfg['extract_as_jpg']:
+            self.ext = '.jpg'
+        else:
+            self.ext = '.png'
 
         # create temporary workspace if not specified
         if self.workspace is None:
@@ -181,7 +185,7 @@ class ResourceManager:
                     new_w = (w * self.max_size // min(w, h))
                     new_h = (h * self.max_size // min(w, h))
                     frame = cv2.resize(frame, dsize=(new_w, new_h), interpolation=cv2.INTER_AREA)
-                cv2.imwrite(path.join(self.image_dir, f'{frame_index:07d}.jpg'), frame)
+                cv2.imwrite(path.join(self.image_dir, f'{frame_index:07d}' + self.ext), frame)
                 frame_index += 1
                 bar.update()
         print('Done!')
@@ -230,7 +234,7 @@ class ResourceManager:
         # returns H*W*3 uint8 array
         assert 0 <= ti < self.length
 
-        image = Image.open(path.join(self.image_dir, self.names[ti] + '.jpg')).convert('RGB')
+        image = Image.open(path.join(self.image_dir, self.names[ti] + self.ext)).convert('RGB')
         image = np.array(image)
         return image
 

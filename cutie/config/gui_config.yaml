@@ -22,10 +22,13 @@ ritm_use_anime: False
 # "size" parameters represent the length of the shorter edge
 max_internal_size: 480
 
-# maximum size for extracting frames; the output will also be in this size
+# maximum size for extracting frames; the output will also be in this size. Negative value to disable.
 # reducing this mainly speed up I/O, it should not be smaller than the internal size
-max_overall_size: 2160
+max_overall_size: -1
 buffer_size: 20
+
+# extract frames from the video as jpeg 95% quality. This significantly reduces storage space and speeds up I/O. Set false to extract as png.
+extract_as_jpg: True
 
 # we use multithreading for saving the results
 save_queue_size: 20
@@ -33,6 +36,9 @@ num_save_threads: 4
 
 # for reading
 num_read_workers: 4
+
+# path to background image. Set None to disable
+background_path: None
 
 # export settings. output_type, codec, and ext use the index value of the combobox
 output_type: 0
