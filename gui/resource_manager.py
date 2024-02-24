@@ -163,7 +163,6 @@ class ResourceManager:
                     data = args.data[i]
                     data = (data * 255).astype(np.uint8)
                     cv2.imwrite(path.join(self.soft_mask_dir, args.name + '.png'), data)
-                    #cv2.imwrite(path.join(self.soft_mask_dir, f'{i}', args.name + '.png'), data)
             else:
                 raise NotImplementedError
             queue.task_done()

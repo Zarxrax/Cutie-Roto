@@ -230,21 +230,21 @@ class MainController():
         if not self.propagating:
             self.gui.set_minimap(self.vis_image)
 
-    def update_current_image_fast(self):
+    def update_current_image_fast(self, invalid_soft_mask: bool = False):
         # fast path, uses gpu. Changes the image in-place to avoid copying
         # thus current_image_torch must be voided afterwards
         self.vis_image = get_visualization_torch(self.vis_mode, self.curr_image_torch,
                                                  self.curr_prob, self.overlay_layer_torch, self.gui.bg_color)
         self.curr_image_torch = None
         self.vis_image = np.ascontiguousarray(self.vis_image)
-        if self.save_soft_mask:
+        if self.save_soft_mask and not invalid_soft_mask:
             self.res_man.save_soft_mask(self.curr_ti, self.curr_prob.cpu().numpy())
         self.gui.set_canvas(self.vis_image)
 
-    def show_current_frame(self, fast: bool = False):
+    def show_current_frame(self, fast: bool = False, invalid_soft_mask: bool = False):
         # Re-compute overlay and show the image
         if fast:
-            self.update_current_image_fast()
+            self.update_current_image_fast(invalid_soft_mask)
         else:
             self.compose_current_im()
             self.update_canvas()
@@ -339,7 +339,8 @@ class MainController():
             # clear
             self.interacted_prob = None
             self.reset_this_interaction()
-            self.show_current_frame(fast=True)
+            
+            self.show_current_frame(fast=True, invalid_soft_mask=True)
 
             self.propagating = True
             self.gui.clear_all_mem_button.setEnabled(False)
