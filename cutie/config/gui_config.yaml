@@ -49,6 +49,7 @@ dilate_radius: 1
 dilate_blur: 3
 
 # memory settings
+clear_cache_when_full: True
 use_long_term: True
 mem_every: 5
 top_k: 30

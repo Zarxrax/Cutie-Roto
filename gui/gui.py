@@ -308,6 +308,7 @@ class GUI(QWidget):
         right_area.addLayout(self.work_mem_gauge_layout)
         right_area.addLayout(self.long_mem_gauge_layout)
         right_area.addLayout(self.gpu_mem_gauge_layout)
+        #right_area.addLayout(self.torch_mem_gauge_layout)
         clearmem_area = QHBoxLayout()
         clearmem_area.setAlignment(Qt.AlignmentFlag.AlignBottom)
         clearmem_area.addWidget(self.clear_non_perm_mem_button)

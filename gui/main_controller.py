@@ -479,9 +479,8 @@ class MainController():
             self.gui.torch_mem_gauge.setFormat(f'{used_by_torch:.1f} GB / {global_total:.1f} GB')
             self.gui.torch_mem_gauge.setValue(round(used_by_torch / global_total * 100 / 1024))
             #Out of memory
-            if (global_free / global_total) < 0.02:
+            if (global_free / global_total) < 0.02 and self.cfg.clear_cache_when_full:
                 self.gui.text(f't={self.curr_ti}: GPU memory is low. Clearing torch cache.')
-                #self.on_clear_non_permanent_memory()
                 torch.cuda.empty_cache() #just clear cache instead of whole memory
                 
                 
