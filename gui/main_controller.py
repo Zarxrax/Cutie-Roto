@@ -340,7 +340,11 @@ class MainController():
             self.interacted_prob = None
             self.reset_this_interaction()
             
-            self.show_current_frame(fast=True, invalid_soft_mask=True)
+            # if start propagation on the first or last frame, update the softmask for that frame.
+            if self.curr_ti == 0 or self.curr_ti == self.T - 1:
+                self.show_current_frame(fast=True)
+            else:
+                self.show_current_frame(fast=True, invalid_soft_mask=True)
 
             self.propagating = True
             self.gui.clear_all_mem_button.setEnabled(False)
