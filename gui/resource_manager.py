@@ -99,6 +99,13 @@ class ResourceManager:
         #os.makedirs(self.visualization_dir, exist_ok=True)
         os.makedirs(self.soft_mask_dir, exist_ok=True)
 
+        # test extension of existing images
+        image_files = os.listdir(self.image_dir)
+        if image_files:
+            ext = image_files[0][-4:]
+            if ext in ['.jpg', '.png']:
+                self.ext = ext
+
         # create all soft mask sub-directories
         #for i in range(1, cfg['num_objects'] + 1):
         #    os.makedirs(path.join(self.soft_mask_dir, f'{i}'), exist_ok=True)
@@ -233,7 +240,7 @@ class ResourceManager:
     def _get_image_unbuffered(self, ti: int):
         # returns H*W*3 uint8 array
         assert 0 <= ti < self.length
-
+        # this may not work if the config file has been changed to specify a different file extension than what it was originally extracted at
         image = Image.open(path.join(self.image_dir, self.names[ti] + self.ext)).convert('RGB')
         image = np.array(image)
         return image
