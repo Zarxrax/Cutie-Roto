@@ -41,10 +41,11 @@ num_read_workers: 4
 background_path: None
 
 # export settings. output_type, codec, and ext use the index value of the combobox
+# output_fps will be detected from the input video if possible, overwriting the value specified here.
 output_type: 0
 output_codec: 0
 output_ext: 0
-output_fps: 23.976
+output_fps: 24
 output_quantizer: 14
 output_refine: False
 

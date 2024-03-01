@@ -240,7 +240,6 @@ class ResourceManager:
     def _get_image_unbuffered(self, ti: int):
         # returns H*W*3 uint8 array
         assert 0 <= ti < self.length
-        # this may not work if the config file has been changed to specify a different file extension than what it was originally extracted at
         image = Image.open(path.join(self.image_dir, self.names[ti] + self.ext)).convert('RGB')
         image = np.array(image)
         return image

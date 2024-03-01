@@ -208,9 +208,11 @@ class Launcher_Dialog(object):
         except Exception as e:
             print(f"Error: {e}")
 
-        #check for long video
+        #check for long video and guess framerate
         with av.open(self.lineEdit_videofile.text()) as container:
-            total_frames = container.streams.video[0].frames
+            stream = container.streams.video[0]
+            self.cfg['output_fps'] = str(round(float(stream.guessed_rate),3))
+            total_frames = stream.frames
             if total_frames > 5000 and self.label_workspace_status_text.text() == "The workspace does not exist. A new workspace will be created.":
                 reply = QMessageBox.question(self, 'Warning', "You have selected a long video. It is recommended to trim the video before importing. Are you sure you want to continue?", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
                 if reply == QMessageBox.No:
