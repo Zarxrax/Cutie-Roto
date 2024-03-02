@@ -38,11 +38,15 @@ class GUI(QWidget):
         # set up some buttons
         self.play_button = QPushButton('Play video')
         self.play_button.clicked.connect(self.on_play_video)
-        self.commit_button = QPushButton('Commit to permanent memory')
+        self.commit_button = QPushButton('Save reference')
         self.commit_button.setToolTip('Store this mask in memory so it can be used as a reference for other frames.')
         self.commit_button.clicked.connect(controller.on_commit)
-        self.export_video_button = QPushButton('Export as video')
+        self.export_video_button = QPushButton('Export video')
         self.export_video_button.clicked.connect(controller.on_export_video)
+        self.undo_button = QPushButton('Undo')
+        self.undo_button.setToolTip('Revert the mask to the state before the last click.')
+        self.undo_button.clicked.connect(controller.on_undo)
+        self.undo_button.setEnabled(False)
 
         self.full_run_button = QPushButton('Full Propagate')
         self.full_run_button.setToolTip('Generate masks on the whole video from the beginning.')
@@ -70,12 +74,14 @@ class GUI(QWidget):
         self.backward_one_button.setMinimumWidth(50)
 
         self.reset_frame_button = QPushButton('Reset frame')
+        self.reset_frame_button.setToolTip('Delete the mask from the current frame.')
         self.reset_frame_button.clicked.connect(controller.on_reset_mask)
 
         # set up the LCD
         self.lcd = QTextEdit()
         self.lcd.setReadOnly(True)
         self.lcd.setMaximumHeight(30)
+        self.lcd.setMinimumWidth(100)
         self.lcd.setMaximumWidth(150)
         self.lcd.setText('{: 5d} / {: 5d}'.format(0, controller.T - 1))
 
@@ -148,7 +154,7 @@ class GUI(QWidget):
         self.clear_all_mem_button = QPushButton('Reset all memory')
         self.clear_all_mem_button.clicked.connect(controller.on_clear_memory)
         self.clear_non_perm_mem_button = QPushButton('Reset non-permanent memory')
-        self.clear_non_perm_mem_button.setToolTip('Clear all memory except frames which were explicitly committed.')
+        self.clear_non_perm_mem_button.setToolTip('Clear all memory except reference frames.')
         self.clear_non_perm_mem_button.clicked.connect(controller.on_clear_non_permanent_memory)
 
         # displaying memory usage
@@ -208,18 +214,22 @@ class GUI(QWidget):
 
         # import background layer
         self.import_layer_button = QPushButton('Import background')
+        self.import_layer_button.setToolTip('Import a background image for use with the "background" preview mode.')
         self.import_layer_button.clicked.connect(controller.on_import_layer)
         # bg color
         self.choose_bg_color_button = QPushButton('Background color')
+        self.choose_bg_color_button.setToolTip('Pick a background color for use with the "background" preview mode.')
         self.choose_bg_color_button.clicked.connect(controller.on_bg_color)
         self.bg_color = [0, 255, 0]
 
         # import mask
         self.import_mask_button = QPushButton('Import masks')
+        self.import_mask_button.setToolTip('Import one or more masks.\nIf the filename contains a number, it will be used as the frame number.')
         self.import_mask_button.clicked.connect(controller.on_import_mask)
         
         #open workspace
         self.open_workspace_button = QPushButton('Open Workspace')
+        self.open_workspace_button.setToolTip('Open this project\'s workspace folder.')
         self.open_workspace_button.clicked.connect(controller.on_open_workspace)
 
         # Console on the GUI
@@ -238,6 +248,7 @@ class GUI(QWidget):
         interact_topbox.addWidget(self.lcd)
         interact_topbox.addWidget(self.play_button)
         interact_topbox.addWidget(self.reset_frame_button)
+        #interact_topbox.addWidget(self.undo_button)
         interact_topbox.addWidget(self.commit_button)
         interact_subbox.addLayout(interact_topbox)
         interact_subbox.addLayout(interact_botbox)
@@ -435,6 +446,7 @@ class GUI(QWidget):
     def update_slider(self, value):
         self.lcd.setText('{: 3d} / {: 3d}'.format(value, self.controller.T - 1))
         self.tl_slider.setValue(value)
+        self.undo_button.setEnabled(False)
 
     def pixel_pos_to_image_pos(self, x, y):
         # Un-scale and un-pad the label coordinates into image coordinates
@@ -516,9 +528,11 @@ class GUI(QWidget):
         if event.button() == Qt.MouseButton.LeftButton:
             action = 'left'
             self.click_fn(action, ex, ey)
+            self.undo_button.setEnabled(True)
         elif event.button() == Qt.MouseButton.RightButton:
             action = 'right'
             self.click_fn(action, ex, ey)
+            self.undo_button.setEnabled(True)
         #elif event.button() == Qt.MouseButton.MiddleButton:
         #    action = 'middle'
         

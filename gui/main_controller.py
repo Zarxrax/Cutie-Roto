@@ -584,6 +584,8 @@ class MainController():
             torch.cuda.empty_cache()
         elif 'mps' in self.device:
             mps.empty_cache()
+        self.gui.ref_listbox.clear()
+        self.gui.text('Cleared all memory.')
         self.processor.update_config(self.cfg)
         self.update_gpu_gauges()
         self.update_memory_gauges()
@@ -667,7 +669,7 @@ class MainController():
                 QMessageBox.warning(None, "Incorrect File Names", "When loading multiple masks, each filename must include the frame number.\nSome of the files may have duplicate numbers or have an unexpected name format.")
                 return
 
-            reply = QMessageBox.question(None, "Save to Permanent Memory", "Would you like to commit all masks to permanent memory?", QMessageBox.Yes | QMessageBox.No)
+            reply = QMessageBox.question(None, "Save to Permanent Memory", "Would you like to commit all masks to permanent memory as reference frames?", QMessageBox.Yes | QMessageBox.No)
             for file_name in file_names:
                 self.curr_ti = frame_ids[file_names.index(file_name)]
                 self.gui.tl_slider.setValue(self.curr_ti)
@@ -733,6 +735,9 @@ class MainController():
         self.zoom_pixels += 50
         self.zoom_pixels = min(self.zoom_pixels, 300)
         self.update_minimap()
+
+    def on_undo(self):
+        pass
 
     @property
     def h(self) -> int:
