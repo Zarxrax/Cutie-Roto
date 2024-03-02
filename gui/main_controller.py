@@ -1,5 +1,6 @@
 from os import path
 import logging
+import re
 from typing import Literal
 
 import torch
@@ -12,7 +13,7 @@ from torchvision.transforms.functional import to_tensor
 import numpy as np
 from omegaconf import DictConfig, open_dict
 from showinfm import show_in_file_manager
-from PySide6.QtWidgets import QDialog
+from PySide6.QtWidgets import QDialog, QMessageBox
 from gui.exporter_gui import Export_Dialog
 
 from cutie.model.cutie import CUTIE
@@ -126,7 +127,7 @@ class MainController():
         self.on_quality_change()
 
         # try to load the default background layer
-        if cfg.background_path is not None:
+        if cfg.background_path:
             self._try_load_layer(cfg.background_path)
         #self.gui.set_object_color(self.curr_object)
         #self.update_config()
@@ -591,35 +592,100 @@ class MainController():
         self.update_memory_gauges()
 
     def on_import_mask(self):
-        file_name = self.gui.open_file('Mask')
-        if len(file_name) == 0:
+        file_names = self.gui.open_files('Select Mask(s)')
+        pattern = re.compile(r'([0-9]+)')
+        if len(file_names) == 0:
             return
+        elif len(file_names) == 1: # load a single mask
+            file_name = file_names[0]
+            match = pattern.search(file_name)
+            if match:
+                frame_id = int(match.string[match.start():match.end()])
+                if frame_id >= 0 and frame_id < self.T:
+                    self.curr_ti = frame_id
+                    self.gui.tl_slider.setValue(self.curr_ti)
+                    mask = self.res_man.import_mask(file_name, size=(self.h, self.w))
+                    shape_condition = ((len(mask.shape) == 2) and (mask.shape[-1] == self.w) and (mask.shape[-2] == self.h))
+                    object_condition = (mask.max() <= self.num_objects)
+                    if not shape_condition:
+                        self.gui.text(f'Expected ({self.h}, {self.w}). Got {mask.shape} instead.')
+                    elif not object_condition:
+                        self.gui.text(f'Expected {self.num_objects} objects. Got {mask.max()} objects instead.')
+                    else:
+                        self.gui.text(f'Mask file {file_name} loaded at frame {self.curr_ti}.')
+                        self.curr_image_torch = self.curr_prob = None
+                        self.curr_mask = mask
+                        self.show_current_frame()
+                        self.save_current_mask()
+                        self.res_man.save_queue.join() #wait for save to finish
+                        self.on_commit() #commit mask to permanent memory
+            else:
+                mask = self.res_man.import_mask(file_name, size=(self.h, self.w))
+                shape_condition = ((len(mask.shape) == 2) and (mask.shape[-1] == self.w) and (mask.shape[-2] == self.h))
+                object_condition = (mask.max() <= self.num_objects)
+                if not shape_condition:
+                    self.gui.text(f'Expected ({self.h}, {self.w}). Got {mask.shape} instead.')
+                elif not object_condition:
+                    self.gui.text(f'Expected {self.num_objects} objects. Got {mask.max()} objects instead.')
+                else:
+                    self.gui.text(f'Mask file {file_name} loaded at frame {self.curr_ti}.')
+                    self.curr_image_torch = self.curr_prob = None
+                    self.curr_mask = mask
+                    self.show_current_frame()
+                    self.save_current_mask()
+                    self.res_man.save_queue.join() #wait for save to finish
+                    self.on_commit() #commit mask to permanent memory
 
-        mask = self.res_man.import_mask(file_name, size=(self.h, self.w))
+        elif len(file_names) > 1: # when loading multiple files, make sure they all have good names
+            all_correct = True
+            frame_ids = []
+            incorrect_files = []
+            for file_name in file_names:
+                match = pattern.search(file_name)
+                if match:
+                    frame_id = int(match.string[match.start():match.end()])
+                    if frame_id >= 0 and frame_id < self.T:
+                        frame_ids.append(frame_id)
+                    else:
+                        all_correct = False
+                        incorrect_files.append(file_name)
+                else:
+                    all_correct = False
+                    incorrect_files.append(file_name)
+            if not all_correct:
+                broken_file_names = '\n'.join(incorrect_files)
+                QMessageBox.warning(None, "Incorrect File Names", f"When loading multiple masks, each filename must include the frame number.\nFiles with incorrect names:\n{broken_file_names}")
+                return
+            elif  frame_ids != sorted(frame_ids):
+                QMessageBox.warning(None, "Incorrect File Names", "When loading multiple masks, each filename must include the frame number.\nSome of the files may have duplicate numbers or have an unexpected name format.")
+                return
 
-        shape_condition = ((len(mask.shape) == 2) and (mask.shape[-1] == self.w)
-                           and (mask.shape[-2] == self.h))
-
-        object_condition = (mask.max() <= self.num_objects)
-
-        if not shape_condition:
-            self.gui.text(f'Expected ({self.h}, {self.w}). Got {mask.shape} instead.')
-        elif not object_condition:
-            self.gui.text(f'Expected {self.num_objects} objects. Got {mask.max()} objects instead.')
-        else:
-            self.gui.text(f'Mask file {file_name} loaded.')
-            self.curr_image_torch = self.curr_prob = None
-            self.curr_mask = mask
-            self.show_current_frame()
-            self.save_current_mask()
-            self.res_man.save_queue.join() #wait for save to finish
-            self.on_commit() #commit mask to permanent memory
+            reply = QMessageBox.question(None, "Save to Permanent Memory", "Would you like to commit all masks to permanent memory?", QMessageBox.Yes | QMessageBox.No)
+            for file_name in file_names:
+                self.curr_ti = frame_ids[file_names.index(file_name)]
+                self.gui.tl_slider.setValue(self.curr_ti)
+                mask = self.res_man.import_mask(file_name, size=(self.h, self.w))
+                shape_condition = ((len(mask.shape) == 2) and (mask.shape[-1] == self.w) and (mask.shape[-2] == self.h))
+                object_condition = (mask.max() <= self.num_objects)
+                if not shape_condition:
+                    self.gui.text(f'Expected ({self.h}, {self.w}). Got {mask.shape} instead.')
+                elif not object_condition:
+                    self.gui.text(f'Expected {self.num_objects} objects. Got {mask.max()} objects instead.')
+                else:    
+                    self.gui.text(f'Mask file {file_name} loaded at frame {self.curr_ti}.')
+                    self.curr_image_torch = self.curr_prob = None
+                    self.curr_mask = mask
+                    self.show_current_frame()
+                    self.save_current_mask()
+                    self.res_man.save_queue.join() #wait for save to finish
+                    if reply == QMessageBox.Yes:
+                        self.on_commit() #commit mask to permanent memory
 
     def on_open_workspace(self):
         show_in_file_manager(self.res_man.workspace)
 
     def on_import_layer(self):
-        file_name = self.gui.open_file('Background Layer')
+        file_name = self.gui.open_file('Select Background Layer')
         if len(file_name) == 0:
             return
 

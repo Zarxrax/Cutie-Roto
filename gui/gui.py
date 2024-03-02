@@ -210,7 +210,7 @@ class GUI(QWidget):
         self.bg_color = [0, 255, 0]
 
         # import mask
-        self.import_mask_button = QPushButton('Import mask')
+        self.import_mask_button = QPushButton('Import masks')
         self.import_mask_button.clicked.connect(controller.on_import_mask)
         
         #open workspace
@@ -534,9 +534,18 @@ class GUI(QWidget):
         file_name, _ = QFileDialog.getOpenFileName(self,
                                                    prompt,
                                                    "",
-                                                   "Image files (*)",
+                                                   "Image Files (*.bmp *.png *.gif *.jpg *.jpeg *.tif *.tga *.webp);;All Files (*)",
                                                    options=options)
         return file_name
+    
+    def open_files(self, prompt):
+        options = QFileDialog.Options()
+        file_names, _ = QFileDialog.getOpenFileNames(self,
+                                                   prompt,
+                                                   "",
+                                                   "Image Files (*.bmp *.png *.gif *.jpg *.jpeg *.tif *.tga *.webp);;All Files (*)",
+                                                   options=options)
+        return file_names
     
     def choose_color(self):
         color = QColorDialog.getColor()

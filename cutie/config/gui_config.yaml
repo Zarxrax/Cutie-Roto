@@ -37,8 +37,8 @@ num_save_threads: 4
 # for reading
 num_read_workers: 4
 
-# path to background image. Set None to disable
-background_path: None
+# path to background image. Set False to disable
+background_path: False
 
 # export settings. output_type, codec, and ext use the index value of the combobox
 # output_fps will be detected from the input video if possible, overwriting the value specified here.
