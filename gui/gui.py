@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from omegaconf import DictConfig
 
-from PySide6.QtWidgets import (QWidget, QComboBox, QHBoxLayout, QLabel, QPushButton,
+from PySide6.QtWidgets import (QWidget, QComboBox, QHBoxLayout, QLabel, QPushButton, QListWidget,
                                QTextEdit, QSpinBox, QPlainTextEdit, QVBoxLayout, QSizePolicy,
                                QSlider, QApplication, QFileDialog, QColorDialog)
 
@@ -43,7 +43,6 @@ class GUI(QWidget):
         self.commit_button.clicked.connect(controller.on_commit)
         self.export_video_button = QPushButton('Export as video')
         self.export_video_button.clicked.connect(controller.on_export_video)
-
 
         self.full_run_button = QPushButton('Full Propagate')
         self.full_run_button.setToolTip('Generate masks on the whole video from the beginning.')
@@ -132,6 +131,12 @@ class GUI(QWidget):
         self.minimap.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.minimap.setAlignment(Qt.AlignTop)
         self.minimap.setMinimumSize(100, 100)
+
+        self.ref_listbox = QListWidget()
+        self.ref_listbox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.ref_listbox.setMinimumSize(100, 100)
+        self.ref_listbox.setSortingEnabled(True)
+        self.ref_listbox.itemDoubleClicked.connect(self.on_ref_listbox_double_click)
 
         # Zoom-in buttons
         self.zoom_m_button = QPushButton('Zoom -')
@@ -302,6 +307,11 @@ class GUI(QWidget):
         right_area.addWidget(self.minimap)
         #right_area.addStretch(1)
 
+        # Ref ListBox
+        ref_title_label = QLabel('Frames in Permanent Memory:')
+        ref_title_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        right_area.addWidget(ref_title_label)
+        right_area.addWidget(self.ref_listbox)
 
         # Parameters
         right_area.addLayout(self.perm_mem_gauge_layout)
@@ -528,6 +538,12 @@ class GUI(QWidget):
         else:
             self.timer.start(1000 // 30)
             self.play_button.setText('Stop video')
+
+    def on_ref_listbox_double_click(self):
+        item = self.ref_listbox.currentItem()
+        if item is not None:
+            self.curr_ti = int(item.text())
+            self.tl_slider.setValue(self.curr_ti)
 
     def open_file(self, prompt):
         options = QFileDialog.Options()

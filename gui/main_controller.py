@@ -14,6 +14,7 @@ import numpy as np
 from omegaconf import DictConfig, open_dict
 from showinfm import show_in_file_manager
 from PySide6.QtWidgets import QDialog, QMessageBox
+from PySide6.QtCore import Qt
 from gui.exporter_gui import Export_Dialog
 
 from cutie.model.cutie import CUTIE
@@ -396,6 +397,12 @@ class MainController():
             # get mask from interaction
             self.complete_interaction()
             self.update_interacted_mask()
+
+        # check if frame is already in reference list before adding to list
+        items = self.gui.ref_listbox.findItems(str(self.curr_ti), Qt.MatchExactly)
+        if len(items) == 0:
+            self.gui.ref_listbox.addItem(str(self.curr_ti))
+            self.gui.ref_listbox.sortItems()
 
         with autocast(self.device, enabled=(self.amp and self.device == 'cuda')):
             self.convert_current_image_mask_torch()
