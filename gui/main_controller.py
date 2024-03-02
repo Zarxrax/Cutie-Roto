@@ -79,6 +79,7 @@ class MainController():
         self.propagating: bool = False
         self.propagate_direction: Literal['forward', 'backward', 'none'] = 'none'
         self.last_ex = self.last_ey = 0
+        self.undo_stack = []
 
         # current frame info
         self.curr_frame_dirty: bool = False
@@ -428,13 +429,8 @@ class MainController():
         object_id = self.gui.object_dial.value()
         self.hit_number_key(object_id)
 
-    def on_fps_dial_change(self):
-        self.output_fps = self.gui.fps_dial.value()
-
-    def on_bitrate_dial_change(self):
-        self.output_bitrate = self.gui.bitrate_dial.value()
-
     def update_interacted_mask(self):
+        self.undo_stack.append(self.curr_mask)
         self.curr_prob = self.interacted_prob
         self.curr_mask = torch_prob_to_numpy_mask(self.interacted_prob)
         self.save_current_mask()
@@ -452,6 +448,8 @@ class MainController():
         if self.curr_prob is not None:
             self.curr_prob.fill_(0)
         self.curr_frame_dirty = True
+        self.undo_stack.clear()
+        self.gui.undo_button.setEnabled(False)
         self.save_current_mask()
         self.reset_this_interaction()
         self.show_current_frame()
@@ -737,7 +735,13 @@ class MainController():
         self.update_minimap()
 
     def on_undo(self):
-        pass
+        self.curr_image_torch = self.curr_prob = None
+        self.curr_mask = self.undo_stack.pop()
+        self.show_current_frame()
+        self.save_current_mask()
+        self.complete_interaction()
+        if len(self.undo_stack) == 0:
+            self.gui.undo_button.setEnabled(False)
 
     @property
     def h(self) -> int:
