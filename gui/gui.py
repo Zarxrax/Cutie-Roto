@@ -8,8 +8,8 @@ from PySide6.QtWidgets import (QWidget, QComboBox, QHBoxLayout, QLabel, QPushBut
                                QTextEdit, QSpinBox, QPlainTextEdit, QVBoxLayout, QSizePolicy,
                                QSlider, QApplication, QFileDialog, QColorDialog)
 
-from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon)
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import (QKeySequence, QShortcut, QTextCursor, QImage, QPixmap, QIcon, QDesktopServices)
+from PySide6.QtCore import Qt, QTimer, QUrl
 
 from cutie.utils.palette import davis_palette_np
 from gui.gui_utils import create_gauge, create_parameter_box, apply_to_all_children_widget
@@ -404,6 +404,8 @@ class GUI(QWidget):
         QShortcut(QKeySequence(Qt.Key.Key_Minus), self).activated.connect(controller.on_zoom_minus)
         QShortcut(QKeySequence(Qt.Key.Key_Return), self).activated.connect(controller.on_commit)
         QShortcut(QKeySequence(Qt.Key.Key_Enter), self).activated.connect(controller.on_commit)
+        QShortcut(QKeySequence(Qt.Key.Key_F1), self).activated.connect(self.open_help)
+        QShortcut(QKeySequence("Ctrl+Z"), self).activated.connect(controller.on_undo)
 
     def resizeEvent(self, event):
         self.controller.show_current_frame()
@@ -591,6 +593,10 @@ class GUI(QWidget):
         rgb = f'rgb({r},{g},{b})'
         self.object_color.setStyleSheet('QLabel {background: ' + rgb + ';}')
         self.object_color.setText(f'{object_id}')
+
+    def open_help(self):
+        url = QUrl("https://github.com/Zarxrax/Cutie-Roto/wiki")
+        QDesktopServices.openUrl(url)
 
     def progressbar_update(self, progress: float):
         self.progressbar.setValue(int(progress * 100))

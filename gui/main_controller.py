@@ -735,6 +735,8 @@ class MainController():
         self.update_minimap()
 
     def on_undo(self):
+        if len(self.undo_stack) == 0:
+            return
         self.curr_image_torch = self.curr_prob = None
         self.curr_mask = self.undo_stack.pop()
         self.show_current_frame()
