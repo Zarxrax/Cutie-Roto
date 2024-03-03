@@ -253,7 +253,6 @@ class MainController():
             self.compose_current_im()
             self.update_canvas()
             self.update_minimap()
-
         self.gui.update_slider(self.curr_ti)
         #self.gui.frame_name.setText(self.res_man.names[self.curr_ti] + '.jpg')
 
@@ -440,6 +439,8 @@ class MainController():
     def reset_this_interaction(self):
         self.complete_interaction()
         self.interacted_prob = None
+        self.undo_stack.clear()
+        self.gui.undo_button.setEnabled(False)
         if self.click_ctrl is not None:
             self.click_ctrl.unanchor()
 
@@ -448,8 +449,6 @@ class MainController():
         if self.curr_prob is not None:
             self.curr_prob.fill_(0)
         self.curr_frame_dirty = True
-        self.undo_stack.clear()
-        self.gui.undo_button.setEnabled(False)
         self.save_current_mask()
         self.reset_this_interaction()
         self.show_current_frame()

@@ -447,9 +447,6 @@ class GUI(QWidget):
 
     def update_slider(self, value):
         self.lcd.setText('{: 3d} / {: 3d}'.format(value, self.controller.T - 1))
-        if self.tl_slider.value() != value: # if change the frame, disable the undo button
-            self.controller.undo_stack.clear()
-            self.undo_button.setEnabled(False)
         self.tl_slider.setValue(value)
 
     def pixel_pos_to_image_pos(self, x, y):
