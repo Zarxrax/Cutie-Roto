@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from cutie.utils.palette import davis_palette
+from cutie.config.config import global_config
 
 
 def image_to_torch(frame: np.ndarray, device: str = 'cuda'):
@@ -26,22 +27,19 @@ def index_numpy_to_one_hot_torch(mask: np.ndarray, num_classes: int):
     return F.one_hot(mask, num_classes=num_classes).permute(2, 0, 1).float()
 
 
+# set torch device for interactice segmentation
+cfg = global_config
+if cfg.force_cpu:
+    device = torch.device("cpu")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+else:
+    device = torch.device("cpu")
+#print(f'Using click device: {device}')
 
 # Some constants for visualization
-"""
-try:
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
-    else:
-        device = torch.device("cpu")
-except:
-    device = torch.device("cpu")
-"""
-# get existing device instead of detecting again
-device = torch.cuda.current_device()
-
 color_map_np = np.frombuffer(davis_palette, dtype=np.uint8).reshape(-1, 3).copy()
 # scales for better visualization
 color_map_np = (color_map_np.astype(np.float32) * 1.5).clip(0, 255).astype(np.uint8)

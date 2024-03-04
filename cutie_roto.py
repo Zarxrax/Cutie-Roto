@@ -13,11 +13,11 @@ except ModuleNotFoundError:
     sys.exit("Please execute \"install_pytorch.bat\" to install Pytorch, then try again.")
     
 from omegaconf import open_dict
-from hydra import compose, initialize
 import logging
 from PySide6.QtWidgets import QApplication, QDialog
 import qdarktheme
 
+from cutie.config.config import global_config
 from gui.main_controller import MainController
 from gui.launcher_gui import Launcher_Dialog
 
@@ -54,9 +54,8 @@ def get_arguments():
 if __name__ in "__main__":
     log = logging.getLogger()
 
-    # getting hydra's config without using its decorator
-    initialize(version_base='1.3.2', config_path="cutie/config", job_name="gui")
-    cfg = compose(config_name="gui_config")
+    # get the config
+    cfg = global_config
 
     # input arguments
     args = get_arguments()
