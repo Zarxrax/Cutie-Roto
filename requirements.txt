@@ -4,5 +4,6 @@ PySide6-Essentials
 pyqtdarktheme
 av
 hydra-core
+requests
 show-in-file-manager
 tqdm
