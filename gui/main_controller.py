@@ -368,8 +368,12 @@ class MainController():
                 self.curr_prob = self.processor.step(self.curr_image_torch)
                 self.curr_mask = torch_prob_to_numpy_mask(self.curr_prob)
 
-                self.save_current_mask()
-                self.show_current_frame(fast=True)
+                # only save current mask if current frame is not in reference list
+                isref = self.gui.ref_listbox.findItems(str(self.curr_ti), Qt.MatchExactly)
+                if len(isref) == 0:
+                    self.save_current_mask()
+                # soft mask will still get overwritten with non-ref. Maybe need to save blurred mask as soft mask
+                self.show_current_frame(fast=True) # saving soft mask happens here
 
                 self.update_memory_gauges()
                 self.gui.process_events()
