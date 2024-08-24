@@ -137,7 +137,7 @@ class MainController():
     def initialize_networks(self) -> None:
         download_models_if_needed()
         self.cutie = CUTIE(self.cfg).eval().to(self.device)
-        model_weights = torch.load(self.cfg.weights, map_location=self.device)
+        model_weights = torch.load(self.cfg.weights, map_location=self.device, weights_only=True)
         self.cutie.load_weights(model_weights)
         if self.cfg.ritm_use_anime is True:
             self.click_ctrl = ClickController(self.cfg.ritm_anime_weights, self.cfg.ritm_max_size, self.cfg.ritm_zoom_size, self.cfg.ritm_expansion_ratio, device=self.device)
