@@ -15,13 +15,13 @@ if errorlevel 3 (
     echo Uninstalling existing Pytorch
     .\python-3.11.7-embed-amd64\python.exe -m pip uninstall torch torchvision
     echo Installing CUDA version of PyTorch
-    .\python-3.11.7-embed-amd64\python.exe -m pip install torch==2.5.0 torchvision==0.20.0 --index-url https://download.pytorch.org/whl/cu124
+    .\python-3.11.7-embed-amd64\python.exe -m pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
 	.\python-3.11.7-embed-amd64\python.exe -m pip install -r .\requirements.txt
 ) else (
     echo Uninstalling existing Pytorch
     .\python-3.11.7-embed-amd64\python.exe -m pip uninstall torch torchvision
     echo Installing CPU version of PyTorch
-    .\python-3.11.7-embed-amd64\python.exe -m pip install torch==2.5.0 torchvision==0.20.0 --index-url https://download.pytorch.org/whl/cpu
+    .\python-3.11.7-embed-amd64\python.exe -m pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu
 	.\python-3.11.7-embed-amd64\python.exe -m pip install -r .\requirements.txt
 )
 
