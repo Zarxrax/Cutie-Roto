@@ -4,6 +4,8 @@ Click image to view Video
 
 Cutie Roto is a fork of [Cutie](https://github.com/hkchengrex/Cutie), and is designed to be a user friendly tool for AI assisted rotoscoping of video clips. It serves as a free alternative to commercial solutions such as Adobe’s Roto Brush or DaVinci Resolve Magic Mask. It is generally less accurate than manual rotoscoping, but can usually give a pretty good result with little effort.
 
+Also check out my newer project, [Sammie-Roto](https://github.com/Zarxrax/Sammie-Roto)
+
 ### Changes from Cutie:
 - Downloadable package for windows users
 - Launcher to select a video file to work on
