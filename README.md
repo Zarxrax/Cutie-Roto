@@ -22,11 +22,11 @@ Also check out my newer project, [Sammie-Roto](https://github.com/Zarxrax/Sammie
 - Run 'install_dependencies.bat' and follow the prompt.
 - Run 'run_gui.bat' to launch the software.
 
-### Manual Installation (Linux, Mac)
-I can only test on Windows, so please let me know if there are any issues with this running on Linux or Mac.
+### Manual Installation (Linux)
+
 #### Prerequisites:
-* [Python](https://www.python.org/) (version 3.11 recommended)
-* [Pytorch](https://pytorch.org) (version 2+ recommended)
+* [Python](https://www.python.org/) (version 3.10 or 3.11 required)
+* [Pytorch](https://pytorch.org) (Latest version should generally be ok. Tested up to version 2.7.0)
 
 #### Clone the repository and install dependencies:
 ```
